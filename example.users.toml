@@ -1,0 +1,24 @@
+[[users]]
+name = "testuser1"
+password = "userpwd"
+sub_expires = "2030-01-01"
+uuid = "430738b4-aba4-4771-97e6-668f81917086"
+use_vpn = true
+use_proxy = true
+use_ios = true
+active = true
+telegram_id = 12345678
+vk_id = 12345678
+managed_users = ["testuser2"]
+
+[[users]]
+name = "testuser2"
+password = "userpwd2"
+sub_expires = "2030-01-01"
+uuid = "8c6d9777-9caf-402d-9f11-368df668af2e"
+use_vpn = true
+use_proxy = true
+use_ios = true
+active = true
+telegram_id = 0
+vk_id = 0

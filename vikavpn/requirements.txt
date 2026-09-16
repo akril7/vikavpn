@@ -1,0 +1,8 @@
+loguru~=0.7.3
+dotenv~=0.9.9
+python-dotenv~=1.2.3
+pydantic~=2.13.5
+pydantic-settings~=2.15.0
+uuid~=1.30
+SQLAlchemy~=2.0.52
+Jinja2~=3.1.6

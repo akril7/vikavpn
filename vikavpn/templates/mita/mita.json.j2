@@ -1,0 +1,23 @@
+{
+  "portBindings": [
+{% for port_bind in port_bindings %}
+    {
+{% if port_bind.port_range is defined %}
+      "portRange": "{{ port_bind.port_range }}",
+{% elif port_bind.port is defined %}
+      "port": {{ port_bind.port }},
+{% endif %}
+      "protocol": "{{ port_bind.protocol }}" }
+{% endfor %}
+  ],
+  "users": [
+{% for user in users %}{% if user.vpn_user %}
+    {
+      "name": "{{ user.name }}",
+      "password": "{{ user.password }}"
+    }{% if not loop.last %},{% endif %}
+{% endif %}{% endfor %}
+  ],
+  "loggingLevel": "ERROR",
+  "mtu": 1400
+}
