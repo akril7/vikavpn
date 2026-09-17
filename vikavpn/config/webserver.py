@@ -4,12 +4,14 @@ from typing import Sequence
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from .app import DEFAULT_INSTALL_DIR
+from .app import DEFAULT_INSTALL_DIR, FILES_DIR
+from .clash import ClashSettings
 from .nginx import NginxSettings
 
 Mounts = Sequence[tuple[str, str]] | None
 
 
+# noinspection PyNestedDecorators
 class WebServerSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="WEBSERVER_",
@@ -23,11 +25,11 @@ class WebServerSettings(BaseSettings):
     root: Path = Field(
         default_factory=lambda: DEFAULT_INSTALL_DIR / "webserver"
     )
-    mounts: Mounts = None
 
     site_name: str = Field(default="vikavpn-webserver", alias="NGINX_SITE_NAME")
 
     nginx: NginxSettings = NginxSettings()
+    clash: ClashSettings = ClashSettings()
 
     @field_validator("ports", mode="before")
     @classmethod
@@ -55,3 +57,10 @@ class WebServerSettings(BaseSettings):
     @property
     def nginx_site_enabled(self) -> Path:
         return self.nginx.site_enabled(f"{self.site_name}.conf")
+
+    @property
+    def mounts(self) -> Mounts:
+        return [
+            ("/sub/", str(self.clash.configs_store_dir.resolve())),
+            ("/files/", str(FILES_DIR))
+             ]

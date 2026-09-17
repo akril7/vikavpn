@@ -4,6 +4,7 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+# noinspection PyNestedDecorators
 class TLSSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="",
@@ -12,7 +13,7 @@ class TLSSettings(BaseSettings):
         extra="ignore",
     )
 
-    domain: str = Field(alias="DOMAIN")
+    domain: str = Field(alias="SERVER_NAME")
     cert_path: Path = Field(alias="CERT_PATH")
     key_path: Path = Field(alias="KEY_PATH")
 

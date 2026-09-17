@@ -11,12 +11,14 @@ env = Environment(loader=FileSystemLoader(TEMPLATE_DIR / "webserver"))
 
 def render_nginx_config(
         ports: Sequence[int],
+        server_name: str,
         web_root: str,
         mounts: Mounts = None,
         ssl_paths: SSLPaths | None = None) -> str:
     template = env.get_template("nginx.conf.j2")
     return template.render(
         ports=ports,
+        server_name=server_name,
         web_root=web_root,
         mounts=mounts or [],
         use_ssl=ssl_paths is not None,

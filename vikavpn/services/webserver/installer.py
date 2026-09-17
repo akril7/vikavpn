@@ -20,6 +20,7 @@ class WebServerInstaller(Installer):
         self.__nginx_enabled_path = ws_config.nginx_site_enabled
         self.__service = SystemdService(ws_config.nginx.service_name)
         self.__mounts = ws_config.mounts
+        self.__domain = tls_config.domain
         self.__ssl_paths = SSLPaths(cert=str(tls_config.cert_path), key=str(tls_config.key_path))
 
     @property
@@ -34,6 +35,7 @@ class WebServerInstaller(Installer):
         index_html = render_index_html(title=self.__title)
         nginx_config = render_nginx_config(
             ports=self.__ports,
+            server_name=self.__domain,
             web_root=str(self.__root),
             mounts=self.__mounts,
             ssl_paths=self.__ssl_paths

@@ -1,6 +1,6 @@
-{%- set mieru_enabled = mita is defined and mita %}
-{%- set hysteria_enabled = hysteria is defined and hysteria %}
-{%- set trusttunnel_enabled = trusttunnel is defined and trusttunnel %}
+{%- set mieru_enabled = mita is defined and mita -%}
+{%- set hysteria_enabled = hysteria is defined and hysteria -%}
+{%- set trusttunnel_enabled = trusttunnel is defined and trusttunnel -%}
 tcp-concurrent: true
 keep-alive-interval: 60
 keep-alive-idle: 120
@@ -8,7 +8,7 @@ disable-keep-alive: false
 
 proxies:
 {%- if mieru_enabled %}
-  - name: mieru
+  - name: 📶 Для-плохого-сигнала
     type: mieru
     server: {{ domain }}
 {%- if mita.port is not none %}
@@ -24,7 +24,7 @@ proxies:
 {% endif %}
 
 {%- if hysteria_enabled %}
-  - name: hyst
+  - name: 🎭 Для-тиктока
     type: hysteria2
     server: {{ domain }}
     port: {{ hysteria.port }}
@@ -35,7 +35,7 @@ proxies:
 {% endif %}
 
 {%- if trusttunnel_enabled %}
-  - name: trust-h2
+  - name: ⚡ Устойчивый-1
     type: trusttunnel
     server: {{ domain }}
     port: {{ trusttunnel.port }}
@@ -46,7 +46,7 @@ proxies:
     username: {{ user.name }}
     password: {{ user.password }}
 
-  - name: trust-quic
+  - name: ⚡ Устойчивый-2
     type: trusttunnel
     server: {{ domain }}
     port: {{ trusttunnel.port }}
@@ -56,35 +56,43 @@ proxies:
     health-check: true
     username: {{ user.name }}
     password: {{ user.password }}
-{% endif %}
+{%- endif %}
 
 proxy-groups:
   - name: PROXY
     type: fallback
     proxies:
 {%- if trusttunnel_enabled %}
-    - proxy-trust
+    - ⚡ Устойчивый-к-блокировке
 {%- endif %}
 {%- if hysteria_enabled %}
-    - hyst
+    - 🎭 Для-тиктока
 {%- endif %}
 {%- if mieru_enabled %}
-    - mieru
+    - 📶 Для-плохого-сигнала
 {%- endif %}
     - DIRECT
-    interval: 900
+    interval: 0
     lazy: false
 
-{% if trusttunnel_enabled -%}
-  - name: proxy-trust
+{% if trusttunnel_enabled %}
+  - name: ⚡ Устойчивый-к-блокировке
     type: fallback
     proxies:
-    - trust-h2
-    - trust-quic
+    - ⚡ Устойчивый-1
+    - ⚡ Устойчивый-2
     interval: 0
     lazy: false
     hidden: true
 {%- endif %}
+
+  - name: GLOBAL
+    type: fallback
+    proxies:
+    - 🎭 Для-тиктока
+    - PROXY
+    interval: 0
+    laze: false
 
 dns:
   enable: true
@@ -114,7 +122,7 @@ rule-providers:
 
 rules:
 {%- if user.ios_user %}
-  - GEOSITE,tiktok,hyst
+  - GEOSITE,tiktok,🎭 Для-тиктока
 {%- endif %}
 
   - GEOSITE,pornhub,PROXY
@@ -135,6 +143,7 @@ rules:
   - DOMAIN-KEYWORD,sex-studentki,PROXY
   - DOMAIN-KEYWORD,chatgpt,PROXY
   - DOMAIN-KEYWORD,regex101.com,PROXY
+  - DOMAIN-KEYWORD,primegamesstudio.com,PROXY
 
   - GEOSITE,category-ads-all,REJECT
 {%- if rules_base_url is defined and rules_base_url %}

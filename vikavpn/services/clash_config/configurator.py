@@ -13,7 +13,7 @@ class ClashConfigurator(Configurator):
                  mita_config: MitaSettings, hysteria_config: HysteriaSettings, trusttunnel_config: TrustTunnelSettings):
         self.__config_dir = clash_config.configs_store_dir
         self.__domain = tls_config.domain
-        self.__rules_base_url = f"https://{tls_config.domain}/rules"
+        self.__rules_base_url = f"https://{tls_config.domain}/files/rules"
         self.__mita_cfg = MitaConfig(protocol=mita_config.protocol, port_range=mita_config.port_range)
         self.__hysteria_cfg = HysteriaConfig(port=hysteria_config.port)
         self.__trusttunnel_cfg = TrustTunnelConfig(port=trusttunnel_config.port)
@@ -28,4 +28,4 @@ class ClashConfigurator(Configurator):
                 mita_config=self.__mita_cfg,
                 hysteria_config=self.__hysteria_cfg,
                 trusttunnel_config=self.__trusttunnel_cfg):
-            (self.__config_dir / f"{uuid.hex}.yml").write_text(config)
+            (self.__config_dir / uuid.hex).write_text(config)

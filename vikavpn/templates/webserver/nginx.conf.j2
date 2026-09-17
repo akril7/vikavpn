@@ -3,7 +3,7 @@ server {
 {%- for port in ports %}
     listen {{ port }}{% if ssl_enabled %} ssl;{% endif %}
 {% endfor %}
-    server_name _;
+    server_name {{ server_name }};
 
 {%- if ssl_enabled %}
     ssl_certificate     {{ cert_path }};

@@ -298,7 +298,7 @@ def uninstall_targets(targets: list[Target]):
     for target in targets:
         ts = TARGETS[target]
         if not ts.installer.is_installed:
-            logger.info(f"{target}: не установлен, пропускаем")
+            logger.warning(f"{target}: не установлен, пропускаем")
             continue
         ts.installer.uninstall()
 
@@ -315,9 +315,8 @@ def apply_configuration(targets: list[Target]) -> None:
             logger.warning(f"{target}: не установлен, пропускаем")
             continue
 
-        logger.info(f"{target}: применяем конфигурацию...")
+        logger.info(f"Применяем конфигурацию для {target}")
         ts.configurator.apply(users)
-        logger.info(f"{target}: конфигурация применена")
 
     logger.info("Сохранение clash-конфигов")
     clash_configurator.apply(users)
