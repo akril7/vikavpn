@@ -17,3 +17,4 @@ class ClashSettings(BaseSettings):
     configs_store_dir: Path = Field(
         default_factory=lambda: DEFAULT_INSTALL_DIR / "clash" / "configs"
     )
+    url_config_path: str = "/sub/"

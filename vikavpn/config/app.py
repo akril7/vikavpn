@@ -7,10 +7,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-TEMPLATE_DIR = BASE_DIR / "templates"
 FILES_DIR = BASE_DIR / "files"
+APPS_DIR = BASE_DIR / "apps"
 
-DEFAULT_INSTALL_DIR = BASE_DIR / "generated"
+DEFAULT_INSTALL_DIR = Path("/opt/vikavpn")
 
 DEBUG = get("DEBUG").lower() in ("yes", "true", "1")
 

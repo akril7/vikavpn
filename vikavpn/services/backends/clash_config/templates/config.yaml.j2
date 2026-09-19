@@ -1,0 +1,153 @@
+{%- set mieru_enabled = mita is defined and mita -%}
+{%- set hysteria_enabled = hysteria is defined and hysteria -%}
+{%- set trusttunnel_enabled = trusttunnel is defined and trusttunnel -%}
+tcp-concurrent: true
+keep-alive-interval: 60
+keep-alive-idle: 120
+disable-keep-alive: false
+
+proxies:
+{%- if mieru_enabled %}
+  - name: 📶 Для-плохого-сигнала
+    type: mieru
+    server: {{ domain }}
+{%- if mita.port is not none %}
+    port: {{ mita.port }}
+{%- elif mita.port_range is not none %}
+    port-range: "{{ mita.port_range }}"
+{%- endif %}
+    transport: {{ mita.protocol.value }}
+    multiplexing: MULTIPLEXING_LOW
+    udp: true
+    username: {{ user.name }}
+    password: {{ user.password }}
+{% endif %}
+
+{%- if hysteria_enabled %}
+  - name: 🎭 Для-тиктока
+    type: hysteria2
+    server: {{ domain }}
+    port: {{ hysteria.port }}
+    udp: true
+    alpn:
+      - h3
+    password: "{{ user.name }}:{{ user.password }}"
+{% endif %}
+
+{%- if trusttunnel_enabled %}
+  - name: ⚡ Стабильный
+    type: trusttunnel
+    server: {{ domain }}
+    port: {{ trusttunnel.port }}
+    sni: {{ domain }}
+    udp: true
+    quic: false
+    health-check: true
+    username: {{ user.name }}
+    password: {{ user.password }}
+
+  - name: ⚡ Быстрый
+    type: trusttunnel
+    server: {{ domain }}
+    port: {{ trusttunnel.port }}
+    sni: {{ domain }}
+    udp: true
+    quic: true
+    health-check: true
+    username: {{ user.name }}
+    password: {{ user.password }}
+{%- endif %}
+
+proxy-groups:
+  - name: PROXY
+    type: fallback
+    proxies:
+{%- if trusttunnel_enabled %}
+    - ⚡ Устойчивый-к-блокировке
+{%- endif %}
+{%- if hysteria_enabled %}
+    - 🎭 Для-тиктока
+{%- endif %}
+{%- if mieru_enabled %}
+    - 📶 Для-плохого-сигнала
+{%- endif %}
+    - DIRECT
+    interval: 0
+    lazy: false
+
+{% if trusttunnel_enabled %}
+  - name: ⚡ Устойчивый-к-блокировке
+    type: fallback
+    proxies:
+    - ⚡ Стабильный
+    - ⚡ Быстрый
+    interval: 0
+    lazy: false
+    hidden: true
+{%- endif %}
+
+  - name: GLOBAL
+    type: fallback
+    proxies:
+    - 🎭 Для-тиктока
+    - PROXY
+    interval: 0
+    lazy: false
+
+dns:
+  enable: true
+  ipv6: false
+  prefer-h3: false
+  enhanced-mode: fake-ip
+  dns-hijack: []
+  default-nameserver:
+    - 77.88.8.8
+    - 9.9.9.9
+  nameserver:
+    - https://9.9.9.9/dns-query
+    - https://77.88.8.8/dns-query
+  proxy-server-nameserver:
+    - https://77.88.8.8/dns-query
+    - https://9.9.9.9/dns-query
+
+{% if rules_base_url is defined and rules_base_url -%}
+rule-providers:
+  ads:
+    type: http
+    behavior: classical
+    url: "{{ rules_base_url }}/ads-rules.yaml"
+    path: ./ruleset/ads-rules.yaml
+    interval: 172800
+{%- endif %}
+
+rules:
+{%- if user.ios_user %}
+  - GEOSITE,tiktok,🎭 Для-тиктока
+{%- endif %}
+
+  - GEOSITE,pornhub,PROXY
+  - GEOSITE,facebook,PROXY
+  - GEOSITE,instagram,PROXY
+  - GEOSITE,openai,PROXY
+  - GEOSITE,discord,PROXY
+  - GEOSITE,youtube,PROXY
+  - GEOSITE,cloudflare,PROXY
+  - GEOSITE,telegram,PROXY
+  - GEOIP,telegram,PROXY,no-resolve
+  - IP-CIDR,194.221.250.50/32,PROXY,no-resolve
+  - GEOSITE,supercell,PROXY
+  - GEOSITE,github,PROXY
+  - GEOSITE,google,PROXY
+  - GEOSITE,anthropic,PROXY
+
+  - DOMAIN-KEYWORD,sex-studentki,PROXY
+  - DOMAIN-KEYWORD,chatgpt,PROXY
+  - DOMAIN-KEYWORD,regex101.com,PROXY
+  - DOMAIN-KEYWORD,primegamesstudio.com,PROXY
+
+  - GEOSITE,category-ads-all,REJECT
+{%- if rules_base_url is defined and rules_base_url %}
+  - RULE-SET,ads,REJECT
+{%- endif %}
+
+  - MATCH,DIRECT

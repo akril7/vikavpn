@@ -6,9 +6,29 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .app import DEFAULT_INSTALL_DIR, FILES_DIR
 from .clash import ClashSettings
-from .nginx import NginxSettings
+from .yoomoney import YoomoneySettings
 
 Mounts = Sequence[tuple[str, str]] | None
+ProxyPasses = Sequence[tuple[str, str]] | None
+
+
+class NginxSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_prefix="NGINX_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    available_path: Path = Path("/etc/nginx/sites-available")
+    enabled_path: Path = Path("/etc/nginx/sites-enabled")
+    service_name: str = "nginx"
+
+    def site_available(self, name: str) -> Path:
+        return self.available_path / name
+
+    def site_enabled(self, name: str) -> Path:
+        return self.enabled_path / name
 
 
 # noinspection PyNestedDecorators
@@ -30,37 +50,34 @@ class WebServerSettings(BaseSettings):
 
     nginx: NginxSettings = NginxSettings()
     clash: ClashSettings = ClashSettings()
-
-    @field_validator("ports", mode="before")
-    @classmethod
-    def parse_ports(cls, v):
-        if isinstance(v, str):
-            return [int(p.strip()) for p in v.split(",") if p.strip()]
-        return v
+    yoomoney: YoomoneySettings = YoomoneySettings()
 
     @field_validator("ports")
     @classmethod
     def check_ports(cls, v: list[int]) -> list[int]:
         if not v:
             raise ValueError("ports не может быть пустым")
-        for p in v:
-            if not (1 <= p <= 49151):
-                raise ValueError(f"порт {p} вне диапазона 1–49151")
         if len(set(v)) != len(v):
             raise ValueError("ports содержит дубликаты")
         return v
 
     @property
-    def nginx_site_available(self) -> Path:
+    def site_available(self) -> Path:
         return self.nginx.site_available(f"{self.site_name}.conf")
 
     @property
-    def nginx_site_enabled(self) -> Path:
+    def site_enabled(self) -> Path:
         return self.nginx.site_enabled(f"{self.site_name}.conf")
 
     @property
     def mounts(self) -> Mounts:
         return [
-            ("/sub/", str(self.clash.configs_store_dir.resolve())),
+            (self.clash.url_config_path, str(self.clash.configs_store_dir.resolve())),
             ("/files/", str(FILES_DIR))
              ]
+
+    @property
+    def proxy_passes(self) -> ProxyPasses:
+        return [
+            (self.yoomoney.webhook_path, f"http://{self.yoomoney.webhook_host}:{self.yoomoney.webhook_port}")
+        ]

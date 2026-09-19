@@ -1,0 +1,14 @@
+[Unit]
+Description=VIKAVPN Yoomoney webhook
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory={{ work_dir }}
+ExecStart={{ executable }} -m apps.yoomoney_webhook
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,39 @@
+server {
+{%- for port in ports %}
+    listen {{ port }}{% if tls %} ssl{% endif %};
+{% endfor %}
+    server_name {% if tls %}{{ tls.domain }}{% else %}_{% endif %};
+
+{%- if tls %}
+    ssl_certificate     {{ tls.cert_path }};
+    ssl_certificate_key {{ tls.key_path }};
+{%- endif %}
+
+    root {{ web_root }};
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html =404;
+    }
+
+{%- if proxy_passes %}
+{% for url, path in proxy_passes %}
+    location {{ url }} {
+        proxy_pass {{ path }};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+{% endfor %}
+{% endif %}
+
+{%- if mounts %}
+{% for url, path in mounts %}
+    location {{ url }} {
+        alias {{ path.rstrip('/') }}/;
+        default_type text/plain;
+    }
+{% endfor %}
+{% endif -%}
+}
