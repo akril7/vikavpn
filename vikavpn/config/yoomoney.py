@@ -12,7 +12,7 @@ class YoomoneySettings(BaseSettings):
 
     receiver: str
     secret: str
-    webhook_service: str = Field(default="yoomoney-webhook")
+    webhook_service: str = Field(default="vikavpn-yoomoney-webhook")
     webhook_path: str = Field(default="/webhook/yoomoney")
     webhook_host: str = Field(default="127.0.0.1")
     webhook_port: int = Field(default=8081)

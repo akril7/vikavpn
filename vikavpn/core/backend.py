@@ -2,14 +2,7 @@ from typing import ClassVar
 
 from loguru import logger
 
-from config.clash import ClashSettings
-from config.hysteria import HysteriaSettings
-from config.mita import MitaSettings
-from config.mtproxyl import MTProxyLSettings
-from config.tls import TLSSettings
-from config.trusttunnel import TrustTunnelSettings
-from config.webserver import WebServerSettings
-from config.yoomoney import YoomoneySettings
+from config import mita, trusttunnel, tls, hysteria, mtproxyl, webserver, clash, yoomoney, telegram_bot, cleanup
 from database.models import Users
 
 from services.backends.base import (
@@ -29,6 +22,8 @@ from services.backends.mtproxyl import (
     MTProxyLInstaller,
     MTProxyLService,
 )
+from services.backends.sub_cleanup import CleanupInstaller, CleanupService
+from services.backends.telegram_bot import TelegramBotInstaller, TelegramBotService
 from services.backends.trusttunnel import (
     TrustTunnelConfigurator,
     TrustTunnelInstaller,
@@ -121,44 +116,43 @@ class Backend:
         self.__configurator.apply(users=users)
 
 
-tls = TLSSettings()
-
-mita = MitaSettings()
 MITA_BACKEND = Backend("mita",
                        MitaInstaller(mita),
                        MitaConfigurator(mita),
                        MitaService())
 
-trusttunnel = TrustTunnelSettings()
 TRUSTTUNNEL_BACKEND = Backend("trusttunnel",
                               TrustTunnelInstaller(trusttunnel),
                               TrustTunnelConfigurator(trusttunnel, tls),
                               TrustTunnelService(trusttunnel))
 
-hysteria = HysteriaSettings()
 HYSTERIA_BACKEND = Backend("hysteria",
                            HysteriaInstaller(hysteria, tls),
                            HysteriaConfigurator(hysteria),
                            HysteriaService(hysteria))
 
-mtproxyl = MTProxyLSettings()
 MTPROXYL_BACKEND = Backend("mtproxyl",
                            MTProxyLInstaller(mtproxyl, tls),
                            MTProxyLConfigurator(mtproxyl),
                            MTProxyLService())
 
-webserver = WebServerSettings()
 WEBSERVER_BACKEND = Backend("webserver",
                             installer=WebServerInstaller(webserver, tls))
 
-clash = ClashSettings()
 CLASH_BACKEND = Backend("clash",
                         configurator=ClashConfigurator(clash, tls,
                                                        mita_config=mita,
                                                        hysteria_config=hysteria,
                                                        trusttunnel_config=trusttunnel))
 
-yoomoney = YoomoneySettings()
 YOOMONEY_BACKEND = Backend("yoomoney",
                            installer=YoomoneyInstaller(yoomoney),
                            service=YoomoneyService(yoomoney))
+
+TELEGRAM_BOT_BACKEND = Backend("telegram-bot",
+                               installer=TelegramBotInstaller(telegram_bot),
+                               service=TelegramBotService(telegram_bot))
+
+CLEANUP_BACKEND = Backend("cleanup",
+                          installer=CleanupInstaller(cleanup),
+                          service=CleanupService(cleanup),)

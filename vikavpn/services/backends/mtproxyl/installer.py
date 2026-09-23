@@ -54,6 +54,7 @@ class MTProxyLInstaller(Installer):
 
         master, proc = run_pty_proc(cmd)
         proc.wait()
+        os.close(master)
 
     def _uninstall(self):
         if not self.is_installed:
@@ -64,3 +65,4 @@ class MTProxyLInstaller(Installer):
         master, proc = run_pty_proc(["mtproxyl", "uninstall"])
         os.write(master, "yes\n\n".encode())
         proc.wait()
+        os.close(master)

@@ -25,8 +25,20 @@ def build_telegram_proxy_url(user: User, sni: str, server: str, port: int) -> st
     return f"tg://proxy?server={server}&port={port}&secret=ee{uuid}{sni}"
 
 
+def build_file_url(server: str, path: str, filename: str, use_ssl: bool = True):
+    return f"{"https" if use_ssl else "http"}://{server}{os.path.join(path, filename)}"
+
+
 def build_clash_config_url(user: User, server: str, path: str, use_ssl: bool = True):
-    return f"{"https" if use_ssl else "http"}://{server}{os.path.join(server, path, user.uuid.hex)}"
+    return build_file_url(server=server, path=path, filename=user.uuid.hex, use_ssl=use_ssl)
+
+
+def build_bot_auth_url(bot_username: str, user: User) -> str:
+    """
+    Deep-link в Telegram-бота с payload = UUID пользователя.
+    Клик по ссылке открывает бота и отправляет /start <uuid>.
+    """
+    return f"https://t.me/{bot_username}?start={user.uuid.hex}"
 
 
 def build_payment_url(payment: Payment, receiver: str) -> str:

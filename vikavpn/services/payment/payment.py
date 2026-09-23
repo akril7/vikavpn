@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.backend import YOOMONEY_BACKEND
 from database import crud
 from database.crud import get_payment_by_label, get_payment_user_ids
 from database.models import Payment, PaymentStatus, User, Tariff
@@ -35,7 +36,8 @@ async def create_payment(
 
     await session.commit()
 
-    url = build_payment_url(payment, receiver)
+    url = build_payment_url(payment, receiver) if YOOMONEY_BACKEND.service.status else "https://vk.ru"
+
     return payment, url
 
 
@@ -53,7 +55,7 @@ async def confirm_payment(
         return payment
 
     payment.status = PaymentStatus.PAID
-    payment.paid_at = datetime.now()
+    payment.paid_at = datetime.now(UTC)
     await session.commit()
 
     user_ids = await get_payment_user_ids(session, payment.id)

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, time, UTC
 from typing import Sequence
 from uuid import UUID
 
@@ -11,12 +11,16 @@ from .models import (
     PaymentUser,
     Tariff,
     User,
-    UserManagement
+    UserManagement, Messenger, UserMessenger
 )
 
 
 class UserNotFoundError(Exception):
     """Пользователь не найден."""
+
+
+class MessengerAlreadyBoundError(Exception):
+    """Этот messenger-аккаунт уже привязан к другому пользователю."""
 
 
 async def create_user(
@@ -46,26 +50,80 @@ async def create_user(
     return obj
 
 
-async def get_users_by_names(session: AsyncSession, names: list[str]) -> Sequence[User]:
+async def get_user_by_uuid(session: AsyncSession, uuid: UUID) -> User | None:
     stmt = (
         select(User)
-        .where(User.name.in_(names))
+        .where(User.uuid == uuid)
+    )
+    return await session.scalar(stmt)
+
+
+async def get_user_with_managed(
+    session: AsyncSession,
+    user_id: int,
+) -> User | None:
+    stmt = (
+        select(User)
+        .where(User.id == user_id)
+        .options(selectinload(User.managed_links).selectinload(UserManagement.managed))
+    )
+    return await session.scalar(stmt)
+
+
+async def get_user_by_messenger(
+    session: AsyncSession,
+    messenger: Messenger,
+    external_id: int,
+) -> User | None:
+    stmt = (
+        select(User)
+        .join(UserMessenger, UserMessenger.user_id == User.id)
+        .where(
+            UserMessenger.messenger == messenger,
+            UserMessenger.external_id == external_id,
+        )
         .options(selectinload(User.managed_links))
     )
+    return await session.scalar(stmt)
 
-    return (await session.scalars(stmt)).all()
 
-
-async def get_user_by_name(session: AsyncSession, name: str) -> User:
-    users = await get_users_by_names(session, [name])
-    if not users:
-        raise UserNotFoundError(f"Пользователь '{name}' не найден")
-    return users[0]
+async def get_user_by_name(session: AsyncSession, name: str) -> User | None:
+    stmt = (
+        select(User)
+        .where(User.name == name)
+        .options(selectinload(User.managed_links))
+    )
+    return (await session.scalars(stmt)).first()
 
 
 async def get_active_users(session: AsyncSession) -> Sequence[User]:
     stmt = select(User).where(
-        User.sub_expires_at > datetime.now(),
+        User.sub_expires_at > datetime.now(UTC),
+    )
+    return (await session.scalars(stmt)).all()
+
+
+async def get_expired_users(session: AsyncSession) -> Sequence[User]:
+    stmt = select(User).where(
+        User.sub_expires_at <= datetime.now(UTC),
+    ).options(selectinload(User.messenger_links))
+    return (await session.scalars(stmt)).all()
+
+
+async def get_users_expiring_tomorrow(
+    session: AsyncSession,
+) -> Sequence[User]:
+    tomorrow = (datetime.now(UTC) + timedelta(days=1)).date()
+    start = datetime.combine(tomorrow, time.min)
+    end = start + timedelta(days=1)
+
+    stmt = (
+        select(User)
+        .where(
+            User.sub_expires_at >= start,
+            User.sub_expires_at < end,
+        )
+        .options(selectinload(User.messenger_links))
     )
     return (await session.scalars(stmt)).all()
 
@@ -81,6 +139,7 @@ async def create_user_management(
     )
     session.add(obj)
     await session.commit()
+
     return obj
 
 
@@ -98,6 +157,8 @@ async def create_payment(
         amount=amount,
     )
     session.add(obj)
+    await session.commit()
+
     return obj
 
 
@@ -108,6 +169,8 @@ async def create_payment_user(
 ) -> PaymentUser:
     obj = PaymentUser(payment_id=payment_id, user_id=user_id)
     session.add(obj)
+    await session.commit()
+
     return obj
 
 
@@ -118,13 +181,6 @@ async def get_payment_by_label(
     return await session.scalar(stmt)
 
 
-async def get_payment_by_operation_id(
-        session: AsyncSession, operation_id: str
-) -> Payment | None:
-    stmt = select(Payment).where(Payment.operation_id == operation_id)
-    return await session.scalar(stmt)
-
-
 async def get_payment_user_ids(
         session: AsyncSession, payment_id: int
 ) -> list[int]:
@@ -132,18 +188,30 @@ async def get_payment_user_ids(
     return list((await session.scalars(stmt)).all())
 
 
-async def get_user_by_uuid(session: AsyncSession, uuid: UUID) -> User | None:
-    stmt = (
-        select(User)
-        .where(User.uuid == uuid)
+async def bind_messenger(
+    session: AsyncSession,
+    user: User,
+    messenger: Messenger,
+    external_id: int,
+) -> UserMessenger:
+    existing = await session.scalar(
+        select(UserMessenger).where(
+            UserMessenger.messenger == messenger,
+            UserMessenger.external_id == external_id,
+        )
     )
-    return await session.scalar(stmt)
+    if existing is not None:
+        if existing.user_id == user.id:
+            return existing
+        raise MessengerAlreadyBoundError(
+            f"{messenger}:{external_id} already bound to user {existing.user_id}"
+        )
 
-
-async def get_managed_users(session: AsyncSession, user_id: int) -> list[User]:
-    stmt = (
-        select(User)
-        .join(UserManagement, UserManagement.managed_id == User.id)
-        .where(UserManagement.manager_id == user_id)
+    obj = UserMessenger(
+        user_id=user.id,
+        messenger=messenger,
+        external_id=external_id,
     )
-    return list((await session.scalars(stmt)).all())
+    session.add(obj)
+    await session.commit()
+    return obj

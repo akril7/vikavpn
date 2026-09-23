@@ -15,7 +15,7 @@ class TrustTunnelSettings(BaseSettings):
     )
 
     port: int = Field(default=8443, ge=1, le=49151)
-    service: str = "trusttunnel"
+    service: str = "vikavpn-trusttunnel"
     install_dir: Path = Field(
         default_factory=lambda: DEFAULT_INSTALL_DIR / "trusttunnel"
     )

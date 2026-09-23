@@ -1,5 +1,3 @@
-import time
-
 from loguru import logger
 
 from config.app import SNI

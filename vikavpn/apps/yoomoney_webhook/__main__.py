@@ -44,7 +44,7 @@ async def handle_yoomoney(request: web.Request) -> web.Response:
     async with Session() as session:
         await confirm_payment(session, label)
 
-    return web.Response(status=201)
+    return web.Response(status=200)
 
 
 def create_app(secret: str, webhook_path: str) -> web.Application:

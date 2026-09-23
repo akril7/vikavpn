@@ -4,11 +4,12 @@ from datetime import datetime
 from loguru import logger
 from uuid import UUID
 
+from config import telegram_bot
 from config.app import SNI
 from core.backend import Backend, CLASH_BACKEND, clash, tls, mtproxyl
 from database.connection import Session
 from database.crud import get_active_users, create_user, create_user_management, \
-    UserNotFoundError, get_user_by_name
+    UserNotFoundError, get_user_by_name, get_expired_users
 from database.models import User
 from services import link
 
@@ -94,6 +95,8 @@ async def get_user_info(name: str) -> str:
     """Получить информацию о пользователе по имени."""
     async with Session() as session:
         user = await get_user_by_name(session, name)
+        if not user:
+            raise UserNotFoundError(f"{name}")
 
         return (
             f"""Информация о пользователе:
@@ -112,6 +115,9 @@ async def get_user_info(name: str) -> str:
     
     TG-прокси
     {link.build_telegram_proxy_url(user, SNI, tls.domain, mtproxyl.port)}
+    
+    Ссылка для входа в бота:
+    {link.build_bot_auth_url(telegram_bot.username, user)}
 """
         )
 
@@ -124,6 +130,9 @@ async def set_user_expire(name: str, until: str):
     """Установить срок окончания подписки."""
     async with Session() as session:
         user = await get_user_by_name(session, name)
+        if not user:
+            raise UserNotFoundError(f"{name}")
+
         user.sub_expires_at = datetime.strptime(until, "%Y-%m-%d")
 
         await session.commit()
@@ -180,8 +189,14 @@ def stop_services(targets: list[Backend]) -> None:
 def restart_services(targets: list[Backend]) -> None:
     """Перезапустить сервисы."""
     for target in targets:
-        if target.service:
+        if target.is_installed and target.service:
             logger.info(f"{target.name}: перезапуск")
             target.service.restart()
         else:
             logger.warning(f"{target.name}: перезапуск не поддерживается")
+
+
+async def reload_users():
+    targets = list(Backend.installed().values())
+    await apply_configuration(targets)
+    restart_services(targets)

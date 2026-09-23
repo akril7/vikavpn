@@ -173,7 +173,7 @@ def handle_service(args: argparse.Namespace) -> None:
 # main
 # ============================================================
 
-async def _run_async(handler, args: argparse.Namespace) -> None:
+async def _run_async(handler, args: argparse.Namespace):
     await create_tables()
     await handler(args)
 

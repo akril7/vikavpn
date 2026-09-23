@@ -5,3 +5,4 @@ generated
 .env
 database.db
 migrate.toml
+/vikavpn/.vkbottle/

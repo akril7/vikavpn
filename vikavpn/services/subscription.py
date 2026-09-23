@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,7 +11,7 @@ async def extend_subscription(
     tariff: Tariff,
     days: int,
 ) -> None:
-    now = datetime.now()
+    now = datetime.now(UTC)
     if user.sub_expires_at > now:
         user.sub_expires_at = user.sub_expires_at + timedelta(days=days)
     else:
