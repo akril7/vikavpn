@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from database.models import Tariff
+from database.enums import Tariff
 
 
 @dataclass(frozen=True)
@@ -12,14 +12,14 @@ class Plan:
 
 
 PLANS: list[Plan] = [
-    Plan(Tariff.PROXY, 30, 70, "1 месяц"),
-    Plan(Tariff.PROXY, 60, 140, "2 месяца"),
-    Plan(Tariff.PROXY, 90, 210, "3 месяца"),
-    Plan(Tariff.PROXY, 180, 420, "6 месяцев"),
-    Plan(Tariff.FULL, 30, 120, "1 месяц"),
-    Plan(Tariff.FULL, 60, 240, "2 месяца"),
-    Plan(Tariff.FULL, 90, 360, "3 месяца"),
-    Plan(Tariff.FULL, 180, 720, "6 месяцев"),
+    Plan(Tariff.PROXY, 31, 70, "1 месяц"),
+    Plan(Tariff.PROXY, 62, 140, "2 месяца"),
+    Plan(Tariff.PROXY, 93, 210, "3 месяца"),
+    Plan(Tariff.PROXY, 186, 420, "6 месяцев"),
+    Plan(Tariff.FULL, 31, 120, "1 месяц"),
+    Plan(Tariff.FULL, 62, 240, "2 месяца"),
+    Plan(Tariff.FULL, 93, 360, "3 месяца"),
+    Plan(Tariff.FULL, 186, 720, "6 месяцев"),
 ]
 
 

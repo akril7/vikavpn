@@ -1,0 +1,96 @@
+- name: Base server configuration
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  vars:
+    default_user_name: koz
+    ssh_port: 35790
+    packages_to_install:
+      - sudo
+      - curl
+      - tree
+      - ca-certificates
+      - python3
+
+  vars_prompt:
+    - name: root_password
+      prompt: "Пароль для root"
+      private: yes
+      confirm: yes
+      encrypt: sha512_crypt
+      salt_size: 16
+
+    - name: default_user_password
+      prompt: "Пароль для пользователя {{ default_user_name }}"
+      private: yes
+      confirm: yes
+      encrypt: sha512_crypt
+      salt_size: 16
+
+    - name: authorized_keys_raw
+      prompt: "Публичные SSH-ключи (через запятую, без пробелов в начале; пусто = пропустить)"
+      private: no
+      default: ""
+
+  tasks:
+    - name: Change root password
+      ansible.builtin.user:
+        name: root
+        password: "{{ root_password }}"
+        update_password: always
+
+    - name: Install packages
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop: "{{ packages_to_install }}"
+
+    - name: Create ssh user
+      ansible.builtin.user:
+        name: "{{ default_user_name }}"
+        password: "{{ default_user_password }}"
+        create_home: yes
+        state: present
+        shell: /bin/bash
+
+    - name: Add authorized keys for root
+      ansible.posix.authorized_key:
+        user: root
+        key: "{{ item | trim }}"
+        state: present
+      loop: "{{ authorized_keys_raw.split(',') }}"
+      when: authorized_keys_raw | length > 0
+
+    - name: Change ssh config
+      ansible.builtin.template:
+        src: sshd_config.j2
+        dest: /etc/ssh/sshd_config
+        owner: root
+        group: root
+        mode: '0600'
+        backup: yes
+        validate: '/usr/sbin/sshd -t -f %s'
+      notify: Restart ssh server
+
+    - name: Copy sysctl config file
+      ansible.builtin.copy:
+        src: files/90-vikavpn-tuning.conf
+        dest: /etc/sysctl.d/90-vikavpn-tuning.conf
+        owner: root
+        group: root
+        mode: '0644'
+      register: sysctl_file_copy
+
+    - name: Reload sysctl settings
+      ansible.builtin.command:
+        cmd: sysctl --system
+      when: sysctl_file_copy.changed
+      changed_when: true
+
+  handlers:
+    - name: Restart ssh server
+      ansible.builtin.service:
+        name: ssh
+        state: restarted

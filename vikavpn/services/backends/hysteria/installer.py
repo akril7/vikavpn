@@ -1,7 +1,7 @@
 from loguru import logger
 
-from config.hysteria import HysteriaSettings
-from config.tls import TLSSettings
+from settings.hysteria import HysteriaSettings
+from settings.tls import TLSSettings
 from services.backends.base import Installer, InstallerError
 from services.system import docker
 

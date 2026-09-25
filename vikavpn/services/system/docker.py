@@ -3,7 +3,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from services.download import download_file
+from utils.file import download_file
 from .subprocess import check_result, run_with_check, is_installed, run_without_out, check_root
 
 
@@ -33,7 +33,7 @@ def install_docker():
 
     logger.info("Get docker install script")
     download_file('https://get.docker.com', Path('/tmp/get-docker.sh'))
-    run_without_out(['sudo', 'sh', 'get-docker.sh'], check=True, shell=True)
+    run_without_out(['sudo', 'bash', '/tmp/get-docker.sh'], check=True)
 
     logger.info("Check docker installation")
     check_docker_install()

@@ -4,12 +4,12 @@ from pathlib import Path
 
 from loguru import logger
 
-from config.app import SNI
-from config.mtproxyl import MTProxyLSettings
-from config.tls import TLSSettings
+from settings.app import SNI
+from settings.mtproxyl import MTProxyLSettings
+from settings.tls import TLSSettings
 from services.backends.base import Installer
-from services.download import download_file
 from services.system.subprocess import check_root, run_pty_proc
+from utils.file import download_file
 
 
 class MTProxyLInstaller(Installer):
@@ -47,6 +47,7 @@ class MTProxyLInstaller(Installer):
                "--port", str(self.__port),
                "--host", self.__domain,
                "--sni", SNI,
+               "--meko", "no",
                "--secret", f"{self.__default_user}:{self.__default_user_uuid}",
                "--zapret2", "yes" if self.__use_zapret2 else "no"]
         if force:

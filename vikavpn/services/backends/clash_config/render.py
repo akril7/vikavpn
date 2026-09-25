@@ -2,7 +2,7 @@ import uuid
 from dataclasses import dataclass
 from typing import Generator, Any
 
-from config.mita import MitaProtocol
+from settings.mita import MitaProtocol
 from database.models import User, Users
 from services.backends.base import get_env
 

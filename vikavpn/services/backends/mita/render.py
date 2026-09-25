@@ -1,5 +1,5 @@
 from database.models import Users
-from config.mita import MitaProtocol
+from settings.mita import MitaProtocol
 from services.backends.base import get_env
 
 

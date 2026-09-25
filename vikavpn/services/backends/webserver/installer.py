@@ -2,10 +2,10 @@ import shutil
 
 from loguru import logger
 
-from config.tls import TLSSettings
-from config.webserver import WebServerSettings
+from settings.tls import TLSSettings
+from settings.webserver import WebServerSettings
 from services.backends.base import Installer
-from services.system.subprocess import is_installed, install
+from services.system.subprocess import is_installed
 from services.system.systemctl import SystemdDaemon
 
 from .render import render_index_html, render_nginx_config
@@ -13,7 +13,7 @@ from .render import render_index_html, render_nginx_config
 
 class WebServerInstaller(Installer):
     def __init__(self, ws_config: WebServerSettings, tls_config: TLSSettings):
-        self.__ports = ws_config.ports
+        self.__port = ws_config.port
         self.__root = ws_config.root
         self.__title = ws_config.title
         self.__site_available = ws_config.site_available
@@ -34,7 +34,7 @@ class WebServerInstaller(Installer):
 
         index_html = render_index_html(title=self.__title)
         nginx_config = render_nginx_config(
-            ports=self.__ports,
+            port=self.__port,
             web_root=str(self.__root),
             mounts=self.__mounts,
             proxy_passes=self.__proxy_passes,
@@ -42,8 +42,8 @@ class WebServerInstaller(Installer):
         )
 
         if not is_installed("nginx"):
-            logger.info("Install nginx")
-            install("nginx")
+            logger.error("Nginx not installed")
+            return
 
         logger.info("Save index.html")
         self.__root.mkdir(parents=True, exist_ok=True)

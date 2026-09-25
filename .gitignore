@@ -1,8 +1,11 @@
 .venv
 .idea
-generated
+vikavpn/external
 
-.env
-database.db
-migrate.toml
-/vikavpn/.vkbottle/
+*.env
+*.db
+*.toml
+deploy/inventory.ini
+
+!vikavpn/example.env
+!vikavpn/example.users.toml

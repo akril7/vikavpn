@@ -1,13 +1,16 @@
 import secrets
 import string
-from datetime import datetime, timedelta, UTC
+from datetime import timedelta
 
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import core.commands
-from database.crud import bind_messenger, create_user, get_user_by_name
-from database.models import Messenger, User
+from database.enums import Messenger
+from database.models import User
+from database.repo.messager import UserMessengerRepository
+from database.repo.user import UserRepository
+from services.core.reload import schedule_reload
+from utils.datetime import utcnow
 
 ADJECTIVES = [
     "red", "fast", "lucky", "brave", "calm", "bright", "silent", "wild",
@@ -32,10 +35,10 @@ def _generate_candidate() -> str:
     return f"{secrets.choice(ADJECTIVES)}_{secrets.choice(NOUNS)}_{secrets.randbelow(9999)}"
 
 
-async def generate_name(session: AsyncSession) -> str:
+async def generate_name(repo: UserRepository) -> str:
     for _ in range(20):
         candidate = _generate_candidate()
-        if await get_user_by_name(session, candidate) is None:
+        if await repo.get_by_name(candidate) is None:
             return candidate
 
     raise RuntimeError("Cannot generate unique username")
@@ -47,22 +50,28 @@ async def register_user(
     external_id: int,
     ios_user: bool
 ) -> User:
-    name = await generate_name(session)
+    repo = UserRepository(session)
+
+    name = await generate_name(repo)
     password = generate_password()
 
-    user = await create_user(
-        session=session,
+    user = await repo.create(
         name=name,
         password=password,
-        sub_expires_at=datetime.now(UTC) + timedelta(days=TRIAL_DAYS),
+        sub_expires_at=utcnow() + timedelta(days=TRIAL_DAYS),
         vpn_user=True,
         proxy_user=True,
         ios_user=ios_user,
     )
 
-    await bind_messenger(session, user, messenger, external_id)
+    messenger_repo = UserMessengerRepository(session)
+    await messenger_repo.bind(
+        user_id=user.id,
+        messenger=messenger,
+        external_id=external_id
+    )
 
     logger.info(f"Registered user {user.name} for {messenger}:{external_id}")
-    await core.commands.reload_users()
+    schedule_reload()
 
     return user

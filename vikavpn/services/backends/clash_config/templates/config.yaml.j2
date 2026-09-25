@@ -8,7 +8,7 @@ disable-keep-alive: false
 
 proxies:
 {%- if mieru_enabled %}
-  - name: 📶 Для-плохого-сигнала
+  - name: 📶 Резерв
     type: mieru
     server: {{ domain }}
 {%- if mita.port is not none %}
@@ -63,20 +63,20 @@ proxy-groups:
     type: fallback
     proxies:
 {%- if trusttunnel_enabled %}
-    - ⚡ Устойчивый-к-блокировке
+    - ⚡ Основной
 {%- endif %}
 {%- if hysteria_enabled %}
     - 🎭 Для-тиктока
 {%- endif %}
 {%- if mieru_enabled %}
-    - 📶 Для-плохого-сигнала
+    - 📶 Резерв
 {%- endif %}
     - DIRECT
     interval: 0
     lazy: false
 
 {% if trusttunnel_enabled %}
-  - name: ⚡ Устойчивый-к-блокировке
+  - name: ⚡ Основной
     type: fallback
     proxies:
     - ⚡ Стабильный

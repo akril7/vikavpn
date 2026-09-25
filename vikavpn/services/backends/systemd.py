@@ -1,4 +1,3 @@
-from jinja2 import Environment
 from loguru import logger
 
 from services.backends.base import Installer, Service
@@ -7,11 +6,9 @@ from services.system.systemctl import SystemdDaemon, daemon_reload
 
 
 class SystemdInstaller(Installer):
-    def __init__(self, service_name: str, env: Environment, service_file_render_kwargs: dict):
+    def __init__(self, service_name: str, service_file_content: str):
         self.__service = SystemdDaemon(service_name)
-
-        template = env.get_template("service.j2")
-        self.__service_file_content = template.render(**service_file_render_kwargs)
+        self.__service_file_content = service_file_content
 
     @property
     def is_installed(self) -> bool:

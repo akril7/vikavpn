@@ -1,0 +1,8 @@
+Include /etc/ssh/sshd_config.d/*.conf
+
+Port {{ ssh_port }}
+PermitRootLogin prohibit-password
+PubkeyAuthentication yes
+PasswordAuthentication yes
+
+Subsystem sftp internal-sftp

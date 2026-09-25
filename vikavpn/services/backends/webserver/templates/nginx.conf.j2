@@ -1,7 +1,5 @@
 server {
-{%- for port in ports %}
     listen {{ port }}{% if tls %} ssl{% endif %};
-{% endfor %}
     server_name {% if tls %}{{ tls.domain }}{% else %}_{% endif %};
 
 {%- if tls %}
@@ -13,7 +11,7 @@ server {
     index index.html;
 
     location / {
-        try_files $uri $uri/ /index.html =404;
+        try_files $uri $uri/ /index.html;
     }
 
 {%- if proxy_passes %}

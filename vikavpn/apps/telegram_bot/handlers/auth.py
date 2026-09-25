@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from database.connection import Session
-from database.models import Messenger
+from database.enums import Messenger
 from services.bot.auth import AuthResult, authorize_by_link
 
 from ..keyboards import auth_menu, back_menu, main_menu
@@ -48,6 +48,7 @@ async def msg_auth_link(message: Message, state: FSMContext):
             message.from_user.id,
             message.text or "",
         )
+        await session.commit()
 
     if result == AuthResult.USER_NOT_FOUND:
         await message.answer(render_auth_user_not_found())

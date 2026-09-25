@@ -3,11 +3,11 @@ from pathlib import Path
 
 from loguru import logger
 
-from config.mita import MitaSettings
+from settings.mita import MitaSettings
 from services.backends.base import Installer
-from services.download import download_file
 from services.system.subprocess import is_installed, install_deb, add_user_to_group, uninstall_deb, check_root
 from services.system.systemctl import SystemdDaemon
+from utils.file import download_file
 
 DEB_STORE_PATH = Path("/tmp/mita.deb")
 

@@ -1,4 +1,4 @@
-from config.mtproxyl import MTProxyLSettings
+from settings.mtproxyl import MTProxyLSettings
 from database.models import Users
 from services.backends.base import Configurator
 from services.backends.mtproxyl.render import render_secrets

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .subprocess import run_with_check, run_and_get_text, run_without_out
+from .subprocess import run_with_check, run_without_out
 
 
 class ServiceNotExistsError(Exception):
@@ -48,7 +48,7 @@ class SystemdDaemon:
 
     @check_exists
     def status(self) -> bool:
-        return run_without_out(["systemctl", "status", self.name]).returncode == 0
+        return run_without_out(["systemctl", "is-active", self.name]).returncode == 0
 
     @check_exists
     def enable(self):
@@ -67,8 +67,7 @@ class SystemdDaemon:
         daemon_reload()
 
     def exists(self) -> bool:
-        result = run_and_get_text(['systemctl', 'list-unit-files', f'{self.name}.service'])
-        return self.name in result
+        return run_without_out(['systemctl', 'is-active', f'{self.name}.service']).returncode != 4
 
 
 def check_service_status(service: SystemdDaemon):

@@ -1,0 +1,63 @@
+- name: Deploy vikavpn locally
+  hosts: localhost
+  connection: local
+  become: yes
+  gather_facts: yes
+
+  vars:
+    project_dir: "{{ ((playbook_dir | dirname) ~ '/vikavpn') | realpath }}"
+    env_file: "{{ project_dir }}/.env"
+    venv_dir: "{{ project_dir }}/.venv"
+    service_python: "{{ venv_dir }}/bin/python"
+
+  tasks:
+    - name: Validate project dir
+      ansible.builtin.assert:
+        that:
+          - (project_dir ~ '/manage.py') is exists
+          - (project_dir ~ '/requirements.txt') is exists
+        fail_msg: "Не найден {{ project_dir }}/manage.py или requirements.txt"
+
+    - name: Check .env
+      ansible.builtin.stat:
+        path: "{{ env_file }}"
+      register: env_stat
+
+    - name: Fail if .env missing
+      ansible.builtin.assert:
+        that:
+          - env_stat.stat.exists
+        fail_msg: "{{ env_file }} не найден. Подготовьте .env перед деплоем."
+
+    - name: Install system deps
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - python3
+          - python3-venv
+          - python3-pip
+          - nginx
+          - dpkg
+        state: present
+        update_cache: yes
+
+    - name: Create virtualenv
+      ansible.builtin.command:
+        cmd: "python3 -m venv {{ venv_dir }}"
+        creates: "{{ venv_dir }}/bin/activate"
+
+    - name: Install requirements
+      ansible.builtin.pip:
+        requirements: "{{ project_dir }}/requirements.txt"
+        virtualenv: "{{ venv_dir }}"
+        state: present
+
+    - name: Run manage.py setup
+      ansible.builtin.command:
+        cmd: "{{ service_python }} {{ project_dir }}/manage.py setup"
+        chdir: "{{ project_dir }}"
+      register: setup_result
+
+    - name: Show setup output
+      ansible.builtin.debug:
+        var: setup_result.stdout_lines

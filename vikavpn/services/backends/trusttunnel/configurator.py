@@ -1,8 +1,8 @@
 from loguru import logger
 
-from config.app import SNI
-from config.tls import TLSSettings
-from config.trusttunnel import TrustTunnelSettings
+from settings.app import SNI
+from settings.tls import TLSSettings
+from settings.trusttunnel import TrustTunnelSettings
 from database.models import Users
 from services.backends.base import Configurator, ConfiguratorError
 from services.backends.trusttunnel.render import render_hosts, render_settings, render_users_config

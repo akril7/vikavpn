@@ -4,16 +4,16 @@ from urllib.parse import urlparse
 
 from loguru import logger
 
-from config.trusttunnel import TrustTunnelSettings
+from settings.trusttunnel import TrustTunnelSettings
 from services.backends.systemd import SystemdInstaller
-from services.backends.trusttunnel.render import env
-from services.download import download_file, unpack_clean
+from services.backends.trusttunnel.render import render_service
 from services.system.subprocess import check_root
+from utils.file import download_file, unpack_clean
 
 
 class TrustTunnelInstaller(SystemdInstaller):
     def __init__(self, config: TrustTunnelSettings):
-        super().__init__(config.service, env, {"work_dir": config.install_dir})
+        super().__init__(config.service, render_service(str(config.install_dir)))
 
         self.__download_link = config.archive_download_link
         self.__install_dir = config.install_dir

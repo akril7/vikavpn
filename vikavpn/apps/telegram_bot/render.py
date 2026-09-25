@@ -1,5 +1,6 @@
 # apps/telegram_bot/render.py
 from datetime import datetime
+from decimal import Decimal
 
 from services.bot import texts
 from services.bot.profile import ProfileView
@@ -69,11 +70,8 @@ def render_renew_choose_target() -> str:
     return texts.RENEW_CHOOSE_TARGET
 
 
-def render_payment_created(amount: int) -> str:
-    return f"💳 Платёж создан на сумму <b>{amount} ₽</b>\n\n" + (
-        "Оплатите по ссылке ниже. После оплаты нажмите "
-        "«Проверить оплату»."
-    )
+def render_payment_created(amount: Decimal) -> str:
+    return texts.PAYMENT_CREATED.format(amount=f"{amount:.2f}")
 
 
 def render_payment_not_found() -> str:

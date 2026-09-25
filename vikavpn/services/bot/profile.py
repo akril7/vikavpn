@@ -1,8 +1,11 @@
 from dataclasses import dataclass
-from datetime import datetime, UTC
+from datetime import datetime
 
 from database.models import User
-from services.link import build_clash_config_url, build_telegram_proxy_url
+from settings import webserver, clash, tls, mtproxyl
+from settings.app import TZ, SNI
+from utils.datetime import utcnow
+from services.url_build import build_clash_config_url, build_telegram_proxy_url
 
 
 @dataclass(frozen=True)
@@ -28,33 +31,20 @@ def tariff_label(user: User) -> str:
     return "—"
 
 
-def build_profile(
-    user: User,
-    *,
-    domain: str,
-    clash_path: str,
-    sni: str,
-    mtproxyl_port: int,
-) -> ProfileView:
-    now = datetime.now(UTC)
+def build_profile(user: User,) -> ProfileView:
+    now = utcnow()
     days_left = (user.sub_expires_at.date() - now.date()).days
 
-    clash_url = None
-    if user.vpn_user:
-        clash_url = build_clash_config_url(user, domain, clash_path)
+    clash_url = build_clash_config_url(user, webserver.server, clash.url_config_path) if user.vpn_user else None
 
-    tg_proxy_url = None
-    if user.proxy_user:
-        tg_proxy_url = build_telegram_proxy_url(
-            user, sni, domain, mtproxyl_port
-        )
+    tg_proxy_url = build_telegram_proxy_url(user, SNI, tls.domain, mtproxyl.port) if user.proxy_user else None
 
-    managed_names = [u.name for u in user.managed_users]
+    managed_names = [u.managed.name for u in user.managed_links]
 
     return ProfileView(
         name=user.name,
         password=user.password,
-        expires_at=user.sub_expires_at,
+        expires_at=user.sub_expires_at.astimezone(TZ),
         is_active=user.is_active,
         days_left=days_left,
         tariff_label=tariff_label(user),

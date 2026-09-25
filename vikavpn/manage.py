@@ -3,10 +3,10 @@ import asyncio
 import inspect
 import sys
 
-from core.backend import Backend
-from core.commands import install_targets, uninstall_targets, apply_configuration, import_users_from_file, \
-    print_user_info, set_user_expire, start_services, stop_services, restart_services, print_services_status
+
 from database.connection import create_tables
+from services.core import commands
+from services.backends.backend import Backend, WEBSERVER_BACKEND
 
 
 # ============================================================
@@ -45,6 +45,7 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Примеры:\n"
+            "  python3 manage.py setup\n"
             "  python3 manage.py install --targets=mita,webserver\n"
             "  python3 manage.py uninstall --targets=mtproxyl\n"
             "  python3 manage.py service start --targets=hysteria,mita\n"
@@ -73,6 +74,9 @@ def build_parser() -> argparse.ArgumentParser:
         )
 
     sub = parser.add_subparsers(dest="command", required=True)
+
+    # ---- setup ----
+    sub.add_parser("setup", help="Установить и запустить все сервисы")
 
     # ---- install / uninstall ----
     p = sub.add_parser("install", help="Установить цели")
@@ -130,29 +134,38 @@ def build_parser() -> argparse.ArgumentParser:
 # Обработчики команд
 # ============================================================
 
+async def handle_setup(_: argparse.Namespace):
+    targets = list(Backend.all().values())
+
+    commands.uninstall_targets([WEBSERVER_BACKEND])
+    commands.install_targets(targets, False)
+    await commands.apply_configuration(targets)
+    commands.restart_services(targets)
+
+
 def handle_install(args: argparse.Namespace):
-    install_targets(args.targets, args.force)
+    commands.install_targets(args.targets, args.force)
 
 
 def handle_uninstall(args: argparse.Namespace):
-    uninstall_targets(args.targets)
+    commands.uninstall_targets(args.targets)
 
 
 async def handle_configure(args: argparse.Namespace) -> None:
     if args.configure_command == "apply":
         targets = resolve_targets(args.targets)
-        await apply_configuration(targets)
+        await commands.apply_configuration(targets)
 
 
 async def handle_user(args: argparse.Namespace):
     cmd = args.user_command
 
     if cmd == "import":
-        await import_users_from_file(args.file)
+        await commands.import_users_from_file(args.file)
     elif cmd == "info":
-        await print_user_info(args.name)
+        await commands.print_user_info(args.name)
     elif cmd == "set-expire":
-        await set_user_expire(args.name, args.until)
+        await commands.set_user_expire(args.name, args.until)
 
 
 def handle_service(args: argparse.Namespace) -> None:
@@ -160,10 +173,10 @@ def handle_service(args: argparse.Namespace) -> None:
     targets = resolve_targets(args.targets)
 
     action = {
-        "start": start_services,
-        "stop": stop_services,
-        "restart": restart_services,
-        "status": print_services_status
+        "start": commands.start_services,
+        "stop": commands.stop_services,
+        "restart": commands.restart_services,
+        "status": commands.print_services_status
     }[cmd]
 
     action(targets)
@@ -183,6 +196,7 @@ def main(argv: list[str] | None = None):
     args = parser.parse_args(argv)
 
     handlers = {
+        "setup": handle_setup,
         "install": handle_install,
         "uninstall": handle_uninstall,
         "service": handle_service,

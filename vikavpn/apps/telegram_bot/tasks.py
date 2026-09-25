@@ -1,19 +1,23 @@
+import asyncio
+from datetime import UTC
+
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from loguru import logger
 
-from config.app import TZ
+from settings import telegram_bot
 from database.connection import Session
-from database.crud import get_users_expiring_tomorrow
+from database.repo.user import UserRepository
 
-scheduler = AsyncIOScheduler(timezone=TZ)
+scheduler = AsyncIOScheduler(timezone=UTC)
 
 
 async def notify_expiring_subscriptions(bot: Bot) -> None:
     """Отправляет уведомление всем, у кого подписка истекает завтра."""
     async with Session() as session:
-        users = await get_users_expiring_tomorrow(session)
+        repo = UserRepository(session)
+        users = await repo.list_expiring_within(hours=24)
 
     logger.info(f"Subscription notification: {len(users)} users expiring tomorrow")
 
@@ -22,22 +26,22 @@ async def notify_expiring_subscriptions(bot: Bot) -> None:
         if telegram_id is None:
             continue
 
-        try:
-            await bot.send_message(
-                chat_id=telegram_id,
-                text=(
-                    "⚠️ <b>Ваша подписка истекает завтра!</b>\n\n"
-                    "Продлите её, чтобы не потерять доступ к сервису."
-                ),
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=(
+                "⚠️ <b>Ваша подписка истекает завтра!</b>\n\n"
+                "Продлите её, чтобы не потерять доступ к сервису."
             )
-        except Exception as e:
-            logger.warning(f"Failed to notify user {user.id}: {e}")
+        )
+
+        await asyncio.sleep(0.2)
 
 
 def setup_scheduler(bot: Bot) -> None:
     scheduler.add_job(
         notify_expiring_subscriptions,
-        trigger=CronTrigger(hour=15, minute=0, timezone=TZ),
+        trigger=CronTrigger(hour=telegram_bot.expire_notif_hour,
+                            minute=telegram_bot.expire_notif_minute),
         args=[bot],
         id="notify_expiring_subscriptions",
         replace_existing=True,

@@ -1,4 +1,4 @@
-from config.hysteria import HysteriaSettings
+from settings.hysteria import HysteriaSettings
 from services.backends.base import Service
 from services.system.docker import is_container_running, restart_container, start_container, stop_container
 

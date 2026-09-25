@@ -2,11 +2,12 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from database.models import Tariff
+from database.enums import Tariff
+from services.bot import texts
 from services.bot.menu import RenewMode
 from services.payment.plans import get_plans
 
-from ..deps import load_user_with_managed, managed_targets
+from ..deps import load_user_with_managed, managed_targets, load_user
 from ..keyboards import days_menu, renew_menu, targets_menu, tariff_menu
 from ..render import (
     render_renew_choose_days,
@@ -26,10 +27,11 @@ async def cb_renew(call: CallbackQuery, state: FSMContext):
     if user is None:
         await call.answer("Пользователь не найден", show_alert=True)
         return
+
     await state.clear()
     await call.message.edit_text(
         render_renew_choose_mode(),
-        reply_markup=renew_menu(has_managed=bool(user.managed_users)),
+        reply_markup=renew_menu(has_managed=bool(user.managed_links)),
     )
     await call.answer()
 
@@ -55,6 +57,13 @@ async def cb_renew_mode(call: CallbackQuery, state: FSMContext):
 @router.callback_query(Renew.tariff, F.data.startswith("tariff:"))
 async def cb_renew_tariff(call: CallbackQuery, state: FSMContext):
     tariff = Tariff(call.data.split(":", 1)[1])
+
+    if tariff == Tariff.PROXY:
+        user = await load_user(call.from_user.id)
+        if user is not None and user.vpn_user and user.is_active:
+            await call.answer(texts.RENEW_PROXY_BLOCKED_BY_VPN, show_alert=True)
+            return
+
     await state.update_data(tariff=tariff.value)
     await state.set_state(Renew.days)
 

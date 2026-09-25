@@ -1,4 +1,4 @@
-from config.mita import MitaSettings
+from settings.mita import MitaSettings
 from database.models import Users
 from services.backends.base import Configurator, ConfiguratorError
 from services.backends.mita.exceptions import MitaApplyConfigError

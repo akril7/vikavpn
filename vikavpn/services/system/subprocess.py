@@ -62,10 +62,6 @@ def is_installed(package: str) -> bool:
     return shutil.which(package) is not None
 
 
-def install(package: str) -> subprocess.CompletedProcess:
-    return run_with_check(["apt", "install", "-y", package])
-
-
 def is_root() -> bool:
     return os.getuid() == 0
 

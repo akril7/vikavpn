@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from database.connection import Session
-from database.models import Messenger
+from database.enums import Messenger
 from services.bot.auth import AuthResult, authorize_by_uuid
 from ..deps import load_user
 from ..keyboards import auth_menu, main_menu
@@ -48,7 +48,6 @@ async def cmd_start_deeplink(
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
-    # обычный /start без payload — как было
     await state.clear()
     user = await load_user(message.from_user.id)
     if user is None:

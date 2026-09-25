@@ -2,10 +2,11 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from config import yoomoney
+from settings import yoomoney
 from database.connection import Session
-from database.crud import get_user_by_messenger, get_user_with_managed
-from database.models import Messenger, Tariff, User
+from database.repo.user import UserRepository
+from database.enums import Messenger, Tariff
+from database.models import User
 from services.bot.menu import RenewMode
 from services.bot.payment import (
     PaymentCheckResult,
@@ -31,24 +32,22 @@ async def create_payment_for_renew(call: CallbackQuery, state: FSMContext):
     days = data["days"]
 
     async with Session() as session:
-        payer = await get_user_by_messenger(
-            session, Messenger.TELEGRAM, call.from_user.id
-        )
+        repo = UserRepository(session)
+
+        payer = await repo.get_by_messenger(Messenger.TELEGRAM, call.from_user.id)
         if payer is None:
             await call.answer("Пользователь не найден", show_alert=True)
             return
 
-        payer_full = await get_user_with_managed(session, payer.id)
+        payer_full = await repo.get_with_managed_users(payer.id)
 
         if mode == RenewMode.SELF:
             targets = [payer_full]
         elif mode == RenewMode.SELF_AND_MANAGED:
-            targets = [payer_full, *payer_full.managed_users]
+            targets = [payer_full, *(link.managed for link in payer_full.managed_links)]
         else:
             target_id = data["target_id"]
-            targets = [
-                u for u in payer_full.managed_users if u.id == target_id
-            ]
+            targets = [link.managed for link in payer_full.managed_links if link.managed.id == target_id]
             if not targets:
                 await call.answer("Пользователь не найден", show_alert=True)
                 return
@@ -60,6 +59,7 @@ async def create_payment_for_renew(call: CallbackQuery, state: FSMContext):
             tariff=tariff,
             days=days,
             receiver=yoomoney.receiver,
+            fee_percent=yoomoney.fee_percent
         )
 
     await state.clear()

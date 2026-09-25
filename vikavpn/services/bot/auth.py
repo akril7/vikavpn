@@ -4,13 +4,11 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
-from database.crud import (
-    MessengerAlreadyBoundError,
-    bind_messenger,
-    get_user_by_uuid,
-)
-from database.models import Messenger, User
-from services.link import parse_uuid_from_link
+from database.enums import Messenger
+from database.models import User
+from database.repo.messager import UserMessengerRepository, MessengerAlreadyBoundError
+from database.repo.user import UserRepository
+from services.url_build import parse_uuid_from_link
 
 
 class AuthResult(StrEnum):
@@ -31,13 +29,21 @@ async def authorize_by_uuid(
         logger.info(f"{messenger}:{external_id} — invalid uuid payload: {raw_uuid!r}")
         return AuthResult.USER_NOT_FOUND, None
 
-    user = await get_user_by_uuid(session, uuid)
+    user_repo = UserRepository(session)
+
+    user = await user_repo.get_by_uuid(uuid)
     if user is None:
         logger.info(f"{messenger}:{external_id} — user not found by uuid {uuid}")
         return AuthResult.USER_NOT_FOUND, None
 
+    bind_repo = UserMessengerRepository(session)
     try:
-        await bind_messenger(session, user, messenger, external_id)
+        await bind_repo.bind(
+            user_id=user.id,
+            messenger=messenger,
+            external_id=external_id
+        )
+        await session.commit()
     except MessengerAlreadyBoundError as e:
         logger.warning(str(e))
         return AuthResult.ALREADY_BOUND, None

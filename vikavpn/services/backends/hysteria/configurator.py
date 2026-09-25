@@ -1,4 +1,4 @@
-from config.hysteria import HysteriaSettings
+from settings.hysteria import HysteriaSettings
 from database.models import Users
 from services.backends.base import Configurator
 from services.backends.hysteria import HysteriaService

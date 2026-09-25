@@ -5,7 +5,8 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from loguru import logger
 
-from config.telegram import TelegramBotSettings
+from services.core.reload import start_reload_worker
+from settings.telegram import TelegramBotSettings
 from database.connection import create_tables
 
 from .handlers import auth, menu, payment, profile, register, renew, start
@@ -16,6 +17,8 @@ async def main():
     config = TelegramBotSettings()
 
     await create_tables()
+
+    start_reload_worker()
 
     bot = Bot(
         token=config.token,
@@ -36,7 +39,8 @@ async def main():
     try:
         await dp.start_polling(bot)
     finally:
-        scheduler.shutdown(wait=False)
+        if scheduler.running:
+            scheduler.shutdown(wait=False)
 
 
 if __name__ == "__main__":

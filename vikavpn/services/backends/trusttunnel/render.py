@@ -1,4 +1,4 @@
-from config.tls import TLSSettings
+from settings.tls import TLSSettings
 from database.models import Users
 from services.backends.base import get_env
 
@@ -26,3 +26,8 @@ def render_settings(port: int, metrics_port: int | None = None) -> str:
 def render_users_config(users: Users) -> str:
     template = env.get_template("credentials.toml.j2")
     return template.render(users=users)
+
+
+def render_service(work_dir: str) -> str:
+    template = env.get_template("service.j2")
+    return template.render(work_dir=work_dir)

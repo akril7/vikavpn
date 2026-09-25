@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from database.connection import Session
-from database.models import Messenger
+from database.enums import Messenger
 from services.bot.registration import register_user
 
 from ..keyboards import main_menu, platform_menu
@@ -37,6 +37,7 @@ async def cb_register_platform(call: CallbackQuery, state: FSMContext):
             call.from_user.id,
             ios_user=ios,
         )
+        await session.commit()
 
     await call.message.edit_text(
         render_register_success(user.name, user.password),

@@ -1,0 +1,191 @@
+- name: Deploy vikavpn to remote host
+  hosts: remote
+  become: yes
+  gather_facts: yes
+
+  vars:
+    repo_root: "{{ (playbook_dir | dirname) | realpath }}"
+    src_vikavpn: "{{ repo_root }}/vikavpn"
+    install_dir: "/opt/vikavpn"
+    env_file: "{{ install_dir }}/.env"
+    venv_dir: "{{ install_dir }}/.venv"
+    service_python: "{{ venv_dir }}/bin/python"
+
+    local_cert_dir: "{{ local_cert_dir }}"
+    remote_cert_dir: "{{ remote_cert_dir }}"
+    cert_filename: "fullchain.pem"
+    key_filename: "privkey.pem"
+
+  vars_prompt:
+    - name: local_cert_dir
+      prompt: "Локальная папка с сертификатом и ключом (например, ./certs)"
+      private: no
+    - name: remote_cert_dir
+      prompt: "Удалённая папка для сертификата и ключа (например, /etc/ssl/vikavpn)"
+      private: no
+
+  pre_tasks:
+    - name: Check source on control node
+      ansible.builtin.stat:
+        path: "{{ src_vikavpn }}/manage.py"
+      delegate_to: localhost
+      become: no
+      register: src_stat
+      tags: [always, sync, setup]
+
+    - name: Fail if source missing
+      ansible.builtin.assert:
+        that:
+          - src_stat.stat.exists
+        fail_msg: "Не найден {{ src_vikavpn }}/manage.py на control-ноде"
+      tags: [always, sync, setup]
+
+    - name: Check local .env exists
+      ansible.builtin.stat:
+        path: "{{ src_vikavpn }}/.env"
+      delegate_to: localhost
+      become: no
+      register: env_local_stat
+      tags: [always, sync, setup]
+
+    - name: Fail if local .env missing
+      ansible.builtin.assert:
+        that:
+          - env_local_stat.stat.exists
+        fail_msg: "{{ src_vikavpn }}/.env не найден. Подготовьте .env перед деплоем."
+      tags: [always, sync, setup]
+
+    - name: Resolve local cert dir (control node)
+      ansible.builtin.set_fact:
+        local_cert_dir_abs: "{{ (local_cert_dir | realpath) if (local_cert_dir is exists) else local_cert_dir }}"
+      delegate_to: localhost
+      become: no
+      tags: [always, certs]
+
+    - name: Check local cert file
+      ansible.builtin.stat:
+        path: "{{ local_cert_dir_abs }}/{{ cert_filename }}"
+      delegate_to: localhost
+      become: no
+      register: local_cert_stat
+      tags: [always, certs]
+
+    - name: Check local key file
+      ansible.builtin.stat:
+        path: "{{ local_cert_dir_abs }}/{{ key_filename }}"
+      delegate_to: localhost
+      become: no
+      register: local_key_stat
+      tags: [always, certs]
+
+    - name: Fail if cert/key missing locally
+      ansible.builtin.assert:
+        that:
+          - local_cert_stat.stat.exists
+          - local_key_stat.stat.exists
+        fail_msg: >
+          Не найдены {{ local_cert_dir_abs }}/{{ cert_filename }} или
+          {{ local_cert_dir_abs }}/{{ key_filename }}
+      tags: [always, certs]
+
+  tasks:
+    - name: Install system deps
+      ansible.builtin.apt:
+        name:
+          - rsync
+          - ca-certificates
+          - python3
+          - python3-venv
+          - python3-pip
+          - nginx
+          - dpkg
+        state: present
+        update_cache: yes
+      tags: [deps]
+
+    - name: Ensure install_dir exists
+      ansible.builtin.file:
+        path: "{{ install_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      tags: [sync, setup]
+
+    - name: Sync vikavpn/ -> install_dir (including .env)
+      ansible.posix.synchronize:
+        src: "{{ src_vikavpn }}/"
+        dest: "{{ install_dir }}/"
+        delete: yes
+        rsync_opts:
+          - "--exclude=.venv"
+          - "--exclude=__pycache__"
+          - "--exclude=*.pyc"
+          - "--exclude=*.db"
+          - "--exclude=external"
+          - "--exclude=.git"
+      tags: [sync, setup]
+
+    - name: Fix .env ownership/permissions on target
+      ansible.builtin.file:
+        path: "{{ env_file }}"
+        owner: root
+        group: root
+        mode: '0600'
+      when: env_file is exists
+      tags: [sync, setup]
+
+    # --- Сертификаты ---
+    - name: Ensure remote cert dir exists
+      ansible.builtin.file:
+        path: "{{ remote_cert_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0750'
+      tags: [certs]
+
+    - name: Copy certificate
+      ansible.builtin.copy:
+        src: "{{ local_cert_dir_abs }}/{{ cert_filename }}"
+        dest: "{{ remote_cert_dir }}/{{ cert_filename }}"
+        owner: root
+        group: root
+        mode: '0644'
+      tags: [certs]
+
+    - name: Copy private key
+      ansible.builtin.copy:
+        src: "{{ local_cert_dir_abs }}/{{ key_filename }}"
+        dest: "{{ remote_cert_dir }}/{{ key_filename }}"
+        owner: root
+        group: root
+        mode: '0600'
+      no_log: true
+      tags: [certs]
+
+    # --- Приложение ---
+    - name: Create virtualenv
+      ansible.builtin.command:
+        cmd: "python3 -m venv {{ venv_dir }}"
+        creates: "{{ venv_dir }}/bin/activate"
+      tags: [venv, setup]
+
+    - name: Install requirements
+      ansible.builtin.pip:
+        requirements: "{{ install_dir }}/requirements.txt"
+        virtualenv: "{{ venv_dir }}"
+        state: present
+      tags: [venv, setup]
+
+    - name: Run manage.py setup
+      ansible.builtin.command:
+        cmd: "{{ service_python }} {{ install_dir }}/manage.py setup"
+        chdir: "{{ install_dir }}"
+      register: setup_result
+      tags: [setup]
+
+    - name: Show setup output
+      ansible.builtin.debug:
+        var: setup_result.stdout_lines
+      tags: [setup]
