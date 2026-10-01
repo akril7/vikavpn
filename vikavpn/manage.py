@@ -3,39 +3,22 @@ import asyncio
 import inspect
 import sys
 
-
-from database.connection import create_tables
-from services.core import commands
-from services.backends.backend import Backend, WEBSERVER_BACKEND
+from src.db.connection import create_tables, Session
+from src.db.repo import UserRepository
+from src.infrastructure.manager import installation, control, configure
+from src.infrastructure.manager.registry import Registry
+from src.settings import Settings
+from src.users.importer import import_users_from_file
+from src.users.info import get_user_info
+from src.users.subscription import set_expire
 
 
 # ============================================================
 # Парсер
 # ============================================================
 
-def parse_targets(value: str) -> list[Backend]:
-    backends = Backend.all()
-
-    try:
-        return [backends[item.strip()] for item in value.split(",") if item.strip()]
-    except ValueError as e:
-        raise argparse.ArgumentTypeError(
-            f"Неизвестная цель. Доступные: {','.join(backends.keys())}"
-        ) from e
-
-
-def resolve_targets(targets: list[Backend]) -> list[Backend]:
-    """Если targets пуст — вернуть только установленные цели."""
-    if targets:
-        return targets
-
-    installed = Backend.installed()
-    if not installed:
-        raise SystemExit(
-            "Не указаны цели и не найдено ни одного установленного сервиса. "
-            f"Укажите --targets из списка: {','.join(Backend.all().keys())}"
-        )
-    return list(installed.values())
+def parse_targets(value: str) -> list[str]:
+    return [v.strip() for v in value.split(",") if v.strip()]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -46,17 +29,17 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Примеры:\n"
             "  python3 manage.py setup\n"
-            "  python3 manage.py install --targets=mita,webserver\n"
-            "  python3 manage.py uninstall --targets=mtproxyl\n"
-            "  python3 manage.py service start --targets=hysteria,mita\n"
+            "  python3 manage.py install mita,webserver\n"
+            "  python3 manage.py uninstall mtproxyl\n"
+            "  python3 manage.py service start hysteria,mita\n"
             "  python3 manage.py service stop\n"
-            "  python3 manage.py service restart --targets=hysteria,mita\n"
+            "  python3 manage.py service restart hysteria,mita\n"
             "  python3 manage.py service status\n"
             "  python3 manage.py configure apply\n"
-            "  python3 manage.py configure apply --targets=hysteria,mita\n"
-            "  python3 manage.py user import --file users.toml\n"
-            "  python3 manage.py user info --name alice\n"
-            "  python3 manage.py user set-expire --name alice --until 2026-01-01\n"
+            "  python3 manage.py configure apply hysteria,mita\n"
+            "  python3 manage.py user import users.toml\n"
+            "  python3 manage.py user info alice\n"
+            "  python3 manage.py user set-expire alice 2026-01-01\n"
         ),
     )
 
@@ -68,8 +51,8 @@ def build_parser() -> argparse.ArgumentParser:
             required=required,
             metavar="СПИСОК",
             help=(
-                f"Цели через запятую: {','.join(Backend.all().keys())}. "
-                "Если не указано — берутся только установленные цели."
+                "Цели через запятую. "
+                "Если не указано — берутся все."
             ),
         )
 
@@ -80,28 +63,28 @@ def build_parser() -> argparse.ArgumentParser:
 
     # ---- install / uninstall ----
     p = sub.add_parser("install", help="Установить цели")
-    add_targets_arg(p, required=True)
-    p.add_argument("--force", action="store_true", help="Установить принудительно")
+    add_targets_arg(p, required=False)
 
     p = sub.add_parser("uninstall", help="Удалить цели")
-    add_targets_arg(p, required=True)
+    add_targets_arg(p, required=False)
 
     # ---- service ----
     service = sub.add_parser("service", help="Управление сервисами")
     service_sub = service.add_subparsers(dest="service_command", required=True)
 
     for cmd, helptext in (
-        ("start", "Запустить сервисы"),
-        ("stop", "Остановить сервисы"),
-        ("restart", "Перезапустить сервисы"),
-        ("status", "Показать статус сервисов"),
+            ("start", "Запустить сервисы"),
+            ("stop", "Остановить сервисы"),
+            ("restart", "Перезапустить сервисы"),
+            ("status", "Показать статус сервисов"),
+            ("reload", "Перезагрузить конфиги сервисов"),
     ):
         p_srv = service_sub.add_parser(cmd, help=helptext)
         add_targets_arg(p_srv, required=False)
 
     # ---- configure ----
-    configure = sub.add_parser("configure", help="Управление конфигурацией")
-    configure_sub = configure.add_subparsers(dest="configure_command", required=True)
+    configure_parser = sub.add_parser("configure", help="Управление конфигурацией")
+    configure_sub = configure_parser.add_subparsers(dest="configure_command", required=True)
 
     p_apply = configure_sub.add_parser(
         "apply",
@@ -114,18 +97,14 @@ def build_parser() -> argparse.ArgumentParser:
     user_sub = user.add_subparsers(dest="user_command", required=True)
 
     p_import = user_sub.add_parser("import", help="Импорт пользователей из файла TOML")
-    p_import.add_argument("--file", required=True, help="Путь к файлу с пользователями")
+    p_import.add_argument("file", help="Путь к файлу с пользователями")
 
     p_info = user_sub.add_parser("info", help="Информация о пользователе")
-    p_info.add_argument("--name", required=True, help="Имя пользователя")
+    p_info.add_argument("name", help="Имя пользователя")
 
     p_exp = user_sub.add_parser("set-expire", help="Установить срок подписки")
-    p_exp.add_argument("--name", required=True, help="Имя пользователя")
-    p_exp.add_argument(
-        "--until",
-        required=True,
-        help="Дата окончания (например, 2026-01-01)",
-    )
+    p_exp.add_argument("name", help="Имя пользователя")
+    p_exp.add_argument("until", help="Дата окончания по UTC (например, 2026-01-01)")
 
     return parser
 
@@ -134,66 +113,87 @@ def build_parser() -> argparse.ArgumentParser:
 # Обработчики команд
 # ============================================================
 
-async def handle_setup(_: argparse.Namespace):
-    targets = list(Backend.all().values())
+async def handle_setup(_: argparse.Namespace, registry: Registry):
+    await asyncio.to_thread(installation.uninstall, registry, None)
+    await asyncio.to_thread(installation.install, registry, None)
 
-    commands.uninstall_targets([WEBSERVER_BACKEND])
-    commands.install_targets(targets, False)
-    await commands.apply_configuration(targets)
-    commands.restart_services(targets)
+    await configure.apply_active_users(registry)
 
-
-def handle_install(args: argparse.Namespace):
-    commands.install_targets(args.targets, args.force)
+    await asyncio.to_thread(control.restart, registry, None)
 
 
-def handle_uninstall(args: argparse.Namespace):
-    commands.uninstall_targets(args.targets)
+def handle_install(args: argparse.Namespace, registry: Registry):
+    installation.install(registry, args.targets or None)
 
 
-async def handle_configure(args: argparse.Namespace) -> None:
+def handle_uninstall(args: argparse.Namespace, registry: Registry):
+    installation.uninstall(registry, args.targets or None)
+
+
+def handle_service(args: argparse.Namespace, registry: Registry):
+    cmd = args.service_command
+    names = args.targets or None
+
+    action = {
+        "start": control.start,
+        "stop": control.stop,
+        "restart": control.restart,
+        "status": _print_status,
+        "reload": control.reload,
+    }[cmd]
+
+    action(registry, names)
+
+
+def _print_status(registry: Registry, names: list[str] | None):
+    result = control.status(registry, names)
+    for name, is_up in result.items():
+        print(f"{name}: {'запущен' if is_up else 'остановлен'}")
+
+
+async def handle_configure(args: argparse.Namespace, registry: Registry):
     if args.configure_command == "apply":
-        targets = resolve_targets(args.targets)
-        await commands.apply_configuration(targets)
+        await configure.apply_active_users(registry, args.targets or None)
 
 
-async def handle_user(args: argparse.Namespace):
+async def handle_user(args: argparse.Namespace, registry: Registry):
     cmd = args.user_command
 
     if cmd == "import":
-        await commands.import_users_from_file(args.file)
+        count = await import_users_from_file(args.file)
+        print(f"Импортировано пользователей: {count}")
     elif cmd == "info":
-        await commands.print_user_info(args.name)
+        print(await get_user_info(args.name, registry.settings))
     elif cmd == "set-expire":
-        await commands.set_user_expire(args.name, args.until)
+        await _set_expire(args.name, args.until)
 
 
-def handle_service(args: argparse.Namespace) -> None:
-    cmd = args.service_command
-    targets = resolve_targets(args.targets)
-
-    action = {
-        "start": commands.start_services,
-        "stop": commands.stop_services,
-        "restart": commands.restart_services,
-        "status": commands.print_services_status
-    }[cmd]
-
-    action(targets)
+async def _set_expire(name: str, until: str):
+    async with Session() as session:
+        repo = UserRepository(session)
+        user = await repo.get_by_name(name)
+        if user is None:
+            raise RuntimeError(f"Пользователь {name} не найден")
+        await set_expire(user, until)
+        await session.commit()
+    print(f"{name}: подписка истекает {user.sub_expires_at:%d.%m.%Y} (UTC)")
 
 
 # ============================================================
 # main
 # ============================================================
 
-async def _run_async(handler, args: argparse.Namespace):
+async def _run_async(handler, args: argparse.Namespace, registry: Registry):
     await create_tables()
-    await handler(args)
+    await handler(args, registry)
 
 
 def main(argv: list[str] | None = None):
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    settings = Settings()
+    registry = Registry(settings)
 
     handlers = {
         "setup": handle_setup,
@@ -206,9 +206,9 @@ def main(argv: list[str] | None = None):
 
     handler = handlers[args.command]
     if inspect.iscoroutinefunction(handler):
-        asyncio.run(_run_async(handler, args))
+        asyncio.run(_run_async(handler, args, registry))
     else:
-        handler(args)
+        handler(args, registry)
 
 
 if __name__ == "__main__":

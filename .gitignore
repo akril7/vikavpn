@@ -2,10 +2,10 @@
 .idea
 vikavpn/external
 
-*.env
+.env
 *.db
 *.toml
 deploy/inventory.ini
 
-!vikavpn/example.env
+!vikavpn/example.*.env
 !vikavpn/example.users.toml

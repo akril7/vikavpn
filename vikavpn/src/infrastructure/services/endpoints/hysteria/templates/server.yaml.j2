@@ -1,0 +1,18 @@
+listen: :{{ port }}
+protocol: udp
+
+tls:
+  cert: /app/server.crt
+  key: /app/server.key
+
+auth:
+  type: http
+  http:
+    url: {{ auth_url }}
+
+masquerade:
+  type: proxy
+  proxy:
+    url: {{ mask_url }}
+    rewriteHost: true
+  forceHTTPS: true

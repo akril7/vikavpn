@@ -11,17 +11,14 @@
     venv_dir: "{{ install_dir }}/.venv"
     service_python: "{{ venv_dir }}/bin/python"
 
-    local_cert_dir: "{{ local_cert_dir }}"
-    remote_cert_dir: "{{ remote_cert_dir }}"
+    local_cert_dir: "/etc/letsencrypt/live/{{ domain }}"
+    remote_cert_dir: "/etc/letsencrypt/live/{{ domain }}"
     cert_filename: "fullchain.pem"
     key_filename: "privkey.pem"
 
   vars_prompt:
-    - name: local_cert_dir
-      prompt: "Локальная папка с сертификатом и ключом (например, ./certs)"
-      private: no
-    - name: remote_cert_dir
-      prompt: "Удалённая папка для сертификата и ключа (например, /etc/ssl/vikavpn)"
+    - name: domain
+      prompt: "Папка-домен с сертификатами"
       private: no
 
   pre_tasks:
