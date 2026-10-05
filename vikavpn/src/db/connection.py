@@ -3,10 +3,10 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from src.settings.app import DB_URL, DEBUG
 from src.db.models import Base
 
-engine = create_async_engine(DB_URL, echo=DEBUG)
+engine = create_async_engine(DB_URL, echo=DEBUG,
+                             pool_pre_ping=True)
 
 Session = async_sessionmaker(engine,
-                             pool_pre_ping=True,
                              expire_on_commit=False)
 
 
