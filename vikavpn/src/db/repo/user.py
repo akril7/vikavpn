@@ -92,7 +92,7 @@ class UserRepository(BaseRepository[User]):
         return list((await self.session.scalars(stmt)).all())
 
     async def list_active(
-        self, limit: int | None = 100, offset: int = 0
+        self, limit: int | None = None, offset: int = 0
     ) -> list[User]:
         stmt = (
             select(User)
@@ -103,7 +103,7 @@ class UserRepository(BaseRepository[User]):
         )
         return list((await self.session.scalars(stmt)).all())
 
-    async def list_expired(self, limit: int = 100, offset: int = 0) -> list[User]:
+    async def list_expired(self, limit: int | None = None, offset: int = 0) -> list[User]:
         stmt = (
             select(User)
             .where(User.sub_expires_at <= utcnow())
@@ -119,7 +119,7 @@ class UserRepository(BaseRepository[User]):
         vpn_user: bool | None = None,
         proxy_user: bool | None = None,
         ios_user: bool | None = None,
-        limit: int = 100,
+        limit: int | None = None,
         offset: int = 0,
     ) -> list[User]:
         stmt = select(User)

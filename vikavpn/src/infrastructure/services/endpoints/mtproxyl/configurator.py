@@ -2,6 +2,7 @@ from src.settings import MTProxyLSettings
 from src.db.models import Users
 from src.core.interfaces.configurator import Configurator
 from src.infrastructure.system.subprocess import run_with_check, check_root
+from src.users.filters import filter_proxy_users
 
 from .render import render_secrets
 
@@ -18,7 +19,7 @@ class MTProxyLConfigurator(Configurator):
         secrets = render_secrets(
             default_user=self.__default_user,
             default_user_uuid=self.__default_user_uuid,
-            users=users
+            users=filter_proxy_users(users)
         )
 
         self.__secrets_path.parent.mkdir(parents=True, exist_ok=True)

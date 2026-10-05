@@ -21,9 +21,9 @@ async def apply_active_users(
     """Загружает активных пользователей и применяет их к endpoints."""
     async with Session() as session:
         repo = UserRepository(session)
-        users = await repo.list_active(limit=None)
+        users = await repo.list_active()
 
-    apply(users, registry, by_names=by_names)
+    apply(iter(users), registry, by_names=by_names)
 
 
 def build_reloader(

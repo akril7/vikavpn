@@ -5,7 +5,9 @@ from src.db.models import Base
 
 engine = create_async_engine(DB_URL, echo=DEBUG)
 
-Session = async_sessionmaker(engine, expire_on_commit=False)
+Session = async_sessionmaker(engine,
+                             pool_pre_ping=True,
+                             expire_on_commit=False)
 
 
 async def create_tables():

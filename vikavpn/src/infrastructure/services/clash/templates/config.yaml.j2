@@ -2,7 +2,7 @@
 {%- set hysteria_enabled = hysteria is defined and hysteria -%}
 {%- set trusttunnel_enabled = trusttunnel is defined and trusttunnel -%}
 {%- set ads_rule_enabled = ads_rule_url is defined and ads_rule_url -%}
-{%- set hysteria_name = "🎭 Для-тиктока" if user.ios_user else "📶 Резерв-универсальный" -%}
+{%- set hysteria_name = "🎭 Для-тиктока" if user.ios_user else "📶 Резерв быстрый" -%}
 tcp-concurrent: true
 keep-alive-interval: 60
 keep-alive-idle: 120
@@ -142,6 +142,7 @@ rules:
   - GEOSITE,google,PROXY
   - GEOSITE,anthropic,PROXY
 
+  - DOMAIN-KEYWORD,kimi,PROXY
   - DOMAIN-KEYWORD,sex-studentki,PROXY
   - DOMAIN-KEYWORD,chatgpt,PROXY
   - DOMAIN-KEYWORD,regex101.com,PROXY

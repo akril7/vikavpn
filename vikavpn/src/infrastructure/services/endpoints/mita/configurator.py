@@ -6,6 +6,7 @@ from src.core.interfaces import ConfiguratorError
 from src.infrastructure.system.systemctl import SystemdUnit
 from src.infrastructure.system.subprocess import run_and_get_text
 from src.settings import MitaSettings
+from src.users.filters import filter_vpn_users
 
 from .render import PortBindingsItem, render_config
 
@@ -23,7 +24,7 @@ class MitaConfigurator(Configurator):
     def apply(self, users: Users):
         config = render_config(
             port_bindings=self.__portbinds,
-            users=users
+            users=filter_vpn_users(users)
         )
 
         CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
