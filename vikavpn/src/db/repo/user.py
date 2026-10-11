@@ -1,34 +1,59 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import select, func
-from sqlalchemy.orm import selectinload
+from sqlalchemy import func, select
+from sqlalchemy.orm import Load
 
-from src.db.enums import Messenger
-from src.db.models import User, UserMessenger, UserManagement
-from src.db.repo.base import BaseRepository
 from src.core.utils.dt import utcnow
+from src.db.enums import Messenger
+from src.db.models import User, UserMessenger
+from src.db.repo.base import BaseRepository
 
 
 class UserRepository(BaseRepository[User]):
     model = User
 
     # ─────────── Поиск по уникальным полям ───────────
-
-    async def get_by_name(self, name: str) -> User | None:
-        stmt = select(User).where(User.name == name)
+    async def get_with(
+            self,
+            pk: int,
+            *,
+            options: tuple[Load, ...] = ()
+    ) -> User | None:
+        """Поиск по pk."""
+        stmt = select(User).where(User.id == pk).options(*options)
         return (await self.session.execute(stmt)).scalar_one_or_none()
 
-    async def get_by_uuid(self, uuid: UUID) -> User | None:
-        stmt = select(User).where(User.uuid == uuid)
+    async def get_by_name(
+        self,
+        name: str,
+        *,
+        options: tuple[Load, ...] = (),
+    ) -> User | None:
+        """Поиск по имени."""
+        stmt = select(User).where(User.name == name).options(*options)
+        return (await self.session.execute(stmt)).scalar_one_or_none()
+
+    async def get_by_uuid(
+        self,
+        uuid: UUID,
+        *,
+        options: tuple[Load, ...] = (),
+    ) -> User | None:
+        """Поиск по UUID."""
+        stmt = select(User).where(User.uuid == uuid).options(*options)
         return (await self.session.execute(stmt)).scalar_one_or_none()
 
     # ─────────── Поиск по messenger-аккаунту ───────────
 
     async def get_by_messenger(
-        self, messenger: Messenger, external_id: int
+        self,
+        messenger: Messenger,
+        external_id: int,
+        *,
+        options: tuple[Load, ...] = (),
     ) -> User | None:
-        """Найти user по его аккаунту в мессенджере."""
+        """Поиск по id в мессенджере."""
         stmt = (
             select(User)
             .join(User.messenger_links)
@@ -36,47 +61,28 @@ class UserRepository(BaseRepository[User]):
                 UserMessenger.messenger == messenger,
                 UserMessenger.external_id == external_id,
             )
+            .options(*options)
         )
         return (await self.session.execute(stmt)).scalar_one_or_none()
 
-    async def get_by_telegram_id(self, telegram_id: int) -> User | None:
-        return await self.get_by_messenger(Messenger.TELEGRAM, telegram_id)
-
-    async def get_by_vk_id(self, vk_id: int) -> User | None:
-        return await self.get_by_messenger(Messenger.VK, vk_id)
-
-    # ─────────── Получить вместе с ───────────
-
-    async def get_with_messengers(self, user_id: int) -> User | None:
-        """User + все его messenger-аккаунты (для .telegram_id / .vk_id)."""
-        stmt = (
-            select(User)
-            .where(User.id == user_id)
-            .options(selectinload(User.messenger_links))
+    async def get_by_telegram_id(
+        self,
+        telegram_id: int,
+        *,
+        options: tuple[Load, ...] = (),
+    ) -> User | None:
+        return await self.get_by_messenger(
+            Messenger.TELEGRAM, telegram_id, options=options,
         )
-        return (await self.session.execute(stmt)).scalar_one_or_none()
-
-    async def get_with_payments(self, user_id: int) -> User | None:
-        stmt = (
-            select(User)
-            .where(User.id == user_id)
-            .options(selectinload(User.payments))
-        )
-        return (await self.session.execute(stmt)).scalar_one_or_none()
-
-    async def get_with_managed_users(self, user_id: int) -> User | None:
-        stmt = (
-            select(User)
-            .where(User.id == user_id)
-            .options(
-                selectinload(User.managed_links).joinedload(UserManagement.managed)
-            )
-        )
-        return (await self.session.execute(stmt)).scalar_one_or_none()
 
     # ─────────── Списки с фильтрацией ───────────
 
-    async def list_expiring_within(self, hours: int = 24, load_messengers: bool = True) -> list[User]:
+    async def list_expiring_within(
+        self,
+        hours: int = 24,
+        *,
+        options: tuple[Load, ...] = (),
+    ) -> list[User]:
         now = utcnow()
         stmt = (
             select(User)
@@ -85,14 +91,16 @@ class UserRepository(BaseRepository[User]):
                 User.sub_expires_at < (now + timedelta(hours=hours)),
             )
             .order_by(User.sub_expires_at)
+            .options(*options)
         )
-        if load_messengers:
-            stmt = stmt.options(selectinload(User.messenger_links))
-
         return list((await self.session.scalars(stmt)).all())
 
     async def list_active(
-        self, limit: int | None = None, offset: int = 0
+        self,
+        limit: int | None = None,
+        offset: int = 0,
+        *,
+        options: tuple[Load, ...] = (),
     ) -> list[User]:
         stmt = (
             select(User)
@@ -100,20 +108,28 @@ class UserRepository(BaseRepository[User]):
             .order_by(User.id)
             .limit(limit)
             .offset(offset)
+            .options(*options)
         )
         return list((await self.session.scalars(stmt)).all())
 
-    async def list_expired(self, limit: int | None = None, offset: int = 0) -> list[User]:
+    async def list_expired(
+        self,
+        limit: int | None = None,
+        offset: int = 0,
+        *,
+        options: tuple[Load, ...] = (),
+    ) -> list[User]:
         stmt = (
             select(User)
             .where(User.sub_expires_at <= utcnow())
             .order_by(User.sub_expires_at)
             .limit(limit)
             .offset(offset)
+            .options(*options)
         )
         return list((await self.session.scalars(stmt)).all())
 
-    async def list_by_flag(
+    async def list_by_flags(
         self,
         *,
         vpn_user: bool | None = None,
@@ -121,6 +137,7 @@ class UserRepository(BaseRepository[User]):
         ios_user: bool | None = None,
         limit: int | None = None,
         offset: int = 0,
+        options: tuple[Load, ...] = (),
     ) -> list[User]:
         stmt = select(User)
         if vpn_user is not None:
@@ -129,7 +146,12 @@ class UserRepository(BaseRepository[User]):
             stmt = stmt.where(User.proxy_user == proxy_user)
         if ios_user is not None:
             stmt = stmt.where(User.ios_user == ios_user)
-        stmt = stmt.order_by(User.id).limit(limit).offset(offset)
+        stmt = (
+            stmt.order_by(User.id)
+            .limit(limit)
+            .offset(offset)
+            .options(*options)
+        )
         return list((await self.session.scalars(stmt)).all())
 
     # ─────────── Специфичные операции ───────────
@@ -141,7 +163,7 @@ class UserRepository(BaseRepository[User]):
         return await self.exists(uuid=uuid)
 
     async def get_next_expire_at(self) -> datetime | None:
-        """Ближайшая дата окончания подписки среди активных пользователей (строго > now)."""
+        """Ближайшая дата окончания подписки среди активных (строго > now)."""
         stmt = (
             select(func.min(User.sub_expires_at))
             .where(User.sub_expires_at > utcnow())

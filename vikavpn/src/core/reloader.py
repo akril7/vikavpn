@@ -35,9 +35,6 @@ class Reloader:
             self._task = asyncio.create_task(self._worker())
             logger.info("Reloader started")
 
-    def schedule(self) -> None:
-        self._dirty.set()
-
     async def stop(self) -> None:
         self._stopping = True
         self._dirty.set()  # разбудить worker, если спит
@@ -56,6 +53,21 @@ class Reloader:
 
         self._task = None
         logger.info("Reloader stopped")
+
+    def schedule(self) -> None:
+        self._dirty.set()
+
+    async def flush(self) -> None:
+        """Немедленно применить накопленные изменения, не дожидаясь debounce."""
+        self._dirty.clear()
+        async with self._lock:
+            logger.info("Applying configuration (flush)...")
+            try:
+                await self._apply()
+                logger.info("Configuration applied")
+            except Exception:
+                logger.exception("Configuration apply failed")
+                raise
 
     async def _worker(self) -> None:
         while not self._stopping:

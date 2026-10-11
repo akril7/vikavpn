@@ -14,7 +14,6 @@ class PaymentStatus(StrEnum):
 
 class Messenger(StrEnum):
     TELEGRAM = "telegram"
-    VK = "vk"
 
 
 def enum_values(enum_cls):

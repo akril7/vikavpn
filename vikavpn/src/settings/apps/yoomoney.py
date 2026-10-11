@@ -1,11 +1,11 @@
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-from src.settings.base import BaseSettingsConfigDict
+from src.settings.base import make_config
 
 
 class YoomoneySettings(BaseSettings):
-    model_config = BaseSettingsConfigDict(env_prefix="YOOMONEY_")
+    model_config = make_config(env_prefix="YOOMONEY_")
 
     # Кошелек получателя платежей
     receiver: str

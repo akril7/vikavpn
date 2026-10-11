@@ -1,9 +1,10 @@
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
-from src.db.enums import Tariff
+from src.core.utils.dt import utcnow
+from src.db.enums import Tariff, PaymentStatus
 from src.db.models import Payment
 from src.db.repo.base import BaseRepository
 
@@ -69,3 +70,36 @@ class PaymentRepository(BaseRepository[Payment]):
             .offset(offset)
         )
         return list((await self.session.scalars(stmt)).all())
+
+    # ─────────── Pending ───────────
+    async def mark_paid_if_pending(
+            self,
+            label: str,
+            amount: Decimal,
+    ) -> Payment | None:
+        """Атомарно пометить платёж оплаченным, если он ещё ``PENDING``. """
+        stmt = (
+            update(Payment)
+            .where(
+                Payment.label == label,
+                Payment.amount == amount,
+                Payment.status != PaymentStatus.PAID,
+            )
+            .values(
+                status=PaymentStatus.PAID,
+                paid_at=utcnow(),
+            )
+            .returning(Payment)
+        )
+
+        result = await self.session.execute(stmt)
+        await self.session.flush()
+        return result.scalar_one_or_none()
+
+    async def get_by_label_paid(self, label: str) -> Payment | None:
+        """Вернуть платёж по ``label``, только если он уже ``PAID``."""
+        stmt = select(Payment).where(
+            Payment.label == label,
+            Payment.status == PaymentStatus.PAID,
+        )
+        return (await self.session.execute(stmt)).scalar_one_or_none()

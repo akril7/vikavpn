@@ -1,6 +1,4 @@
-from typing import Iterator
-
-from src.db.models import User
+from src.db.models import Users
 from src.settings.endpoints.mita import MitaProtocol
 from src.infrastructure import get_env
 
@@ -32,6 +30,6 @@ PortBindings = list[PortBindingsItem]
 env = get_env(__file__)
 
 
-def render_config(port_bindings: PortBindings, users: Iterator[User]) -> str:
+def render_config(port_bindings: PortBindings, users: Users) -> str:
     template = env.get_template("mita.json.j2")
     return template.render(port_bindings=port_bindings, users=users)

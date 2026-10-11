@@ -3,12 +3,12 @@ from pathlib import Path
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
-from src.settings.base import BaseSettingsConfigDict
+from src.settings.base import make_config
 
 
 # noinspection PyNestedDecorators
 class TLSSettings(BaseSettings):
-    model_config = BaseSettingsConfigDict(env_prefix="")
+    model_config = make_config(env_prefix="")
 
     # Домен для сервера
     domain: str

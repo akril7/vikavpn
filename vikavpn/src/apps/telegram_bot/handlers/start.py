@@ -6,13 +6,16 @@ from aiogram.types import Message
 from src.db.connection import Session
 from src.db.enums import Messenger
 from src.db.models import User
-from src.apps.telegram_bot.service.auth import AuthResult, authorize_by_uuid
+from src.db.repo import UserRepository, UserMessengerRepository
 
-from ..deps import load_user
+from src.core.users.flow.auth import AuthResult, authorize_by_uuid
+
+from ..deps import get_user
 from ..keyboards import auth_menu, main_menu
-from ..render import (
+from src.texts.render import (
     render_auth_user_not_found,
     render_start_not_authorized,
+    render_auth_already_bound
 )
 
 router = Router()
@@ -38,15 +41,23 @@ async def cmd_start_deeplink(
     payload = (command.args or "").strip()
 
     async with Session() as session:
+        user_repo = UserRepository(session)
+        messager_repo = UserMessengerRepository(session)
         result, user = await authorize_by_uuid(
-            session,
+            user_repo,
+            messager_repo,
             Messenger.TELEGRAM,
             message.from_user.id,
             payload,
         )
+        await session.commit()
 
     if result == AuthResult.USER_NOT_FOUND:
         await message.answer(render_auth_user_not_found())
+        return
+    elif result == AuthResult.ALREADY_BOUND:
+        await message.answer(render_auth_already_bound())
+        return
 
     await show_start(user, message)
 
@@ -54,5 +65,5 @@ async def cmd_start_deeplink(
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
-    user = await load_user(message.from_user.id)
+    user = await get_user(message.from_user.id)
     await show_start(user, message)

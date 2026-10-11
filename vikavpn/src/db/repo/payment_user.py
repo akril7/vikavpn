@@ -1,6 +1,6 @@
 from sqlalchemy import select, delete as sql_delete
 
-from src.db.models import PaymentUser, User
+from src.db.models import PaymentUser, User, Users
 from src.db.repo.base import BaseRepository
 
 
@@ -33,7 +33,7 @@ class PaymentUserRepository(BaseRepository[PaymentUser]):
         )
         return list((await self.session.scalars(stmt)).all())
 
-    async def get_users(self, payment_id: int) -> list[User]:
+    async def get_users(self, payment_id: int) -> Users:
         stmt = (
             select(User)
             .join(PaymentUser, PaymentUser.user_id == User.id)

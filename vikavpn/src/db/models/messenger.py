@@ -8,7 +8,7 @@ from src.db.models.base import Base, IdMixin
 
 
 if TYPE_CHECKING:
-    pass
+    from .user import User
 
 
 class UserMessenger(IdMixin, Base):
@@ -32,7 +32,8 @@ class UserMessenger(IdMixin, Base):
     )
 
     user: Mapped["User"] = relationship(
-        back_populates="messenger_links"
+        back_populates="messenger_links",
+        lazy="raise"
     )
 
     def __repr__(self) -> str:

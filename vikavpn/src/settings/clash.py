@@ -4,11 +4,11 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 
 from src.settings.app import DEFAULT_INSTALL_DIR
-from src.settings.base import BaseSettingsConfigDict
+from src.settings.base import make_config
 
 
 class ClashSettings(BaseSettings):
-    model_config = BaseSettingsConfigDict(env_prefix="CLASH_")
+    model_config = make_config(env_prefix="CLASH_")
 
     # Папка, где хранить clash-конфиги пользователей
     configs_store_dir: Path = Field(

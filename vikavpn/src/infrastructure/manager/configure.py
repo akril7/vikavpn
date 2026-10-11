@@ -1,14 +1,14 @@
 from loguru import logger
 
-from src.db.models import Users
+from src.db.models import User
 from src.db.connection import Session
 from src.db.repo import UserRepository
-from src.core.reload import Reloader
+from src.core.reloader import Reloader
 
 from .registry import Registry
 
 
-def apply(users: Users, registry: Registry, by_names: list[str] | None = None):
+def apply(users: list[User], registry: Registry, by_names: list[str] | None = None):
     for name, target in registry.get_configure_targets(by_names).items():
         logger.info(f"Применение настроек для {name}")
         target.apply(users)
@@ -23,7 +23,7 @@ async def apply_active_users(
         repo = UserRepository(session)
         users = await repo.list_active()
 
-    apply(iter(users), registry, by_names=by_names)
+    apply(users, registry, by_names=by_names)
 
 
 def build_reloader(

@@ -4,9 +4,9 @@ from src.db.models import Users
 from src.core.interfaces.configurator import Configurator
 from src.core.interfaces import ConfiguratorError
 from src.infrastructure.system.systemctl import SystemdUnit
-from src.infrastructure.system.subprocess import run_and_get_text
+from src.infrastructure.system.subprocess import run_with_check
 from src.settings import MitaSettings
-from src.users.filters import filter_vpn_users
+from src.core.users.filters import filter_vpn_users
 
 from .render import PortBindingsItem, render_config
 
@@ -30,11 +30,9 @@ class MitaConfigurator(Configurator):
         CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
         CONFIG_PATH.write_text(config)
 
-        output = run_and_get_text(["mita", "apply", "config", str(CONFIG_PATH)])
-        if len(output) > 0:
-            raise ConfiguratorError(output)
-
+        run_with_check(["mita", "apply", "config", str(CONFIG_PATH)])
         self.__start_mita_service()
+        self.__service.reload()
 
         CONFIG_PATH.unlink(missing_ok=True)
 

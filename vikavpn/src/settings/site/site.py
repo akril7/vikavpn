@@ -4,11 +4,11 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 
 from src.settings.app import DEFAULT_INSTALL_DIR
-from src.settings.base import BaseSettingsConfigDict
+from src.settings.base import make_config
 
 
 class SiteSettings(BaseSettings):
-    model_config = BaseSettingsConfigDict(env_prefix="SITE_")
+    model_config = make_config(env_prefix="SITE_")
 
     # Заголовок для страницы-заглушки
     title: str = "VIKA-WASSUP"

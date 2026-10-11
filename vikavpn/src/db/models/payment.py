@@ -11,7 +11,7 @@ from src.db.models.base import Base, CreateAtMixin, IdMixin
 
 
 if TYPE_CHECKING:
-    pass
+    from .user import User
 
 
 class Payment(IdMixin, CreateAtMixin, Base):
@@ -40,4 +40,5 @@ class Payment(IdMixin, CreateAtMixin, Base):
         secondary="payment_users",
         back_populates="payments",
         passive_deletes=True,
+        lazy="raise",
     )

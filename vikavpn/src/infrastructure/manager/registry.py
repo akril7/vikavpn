@@ -48,7 +48,6 @@ def _build_installers(settings: Settings):
         "mtproxyl": MTProxyLInstaller(settings.mtproxyl, settings.tls),
         "site": SiteInstaller(settings.site, settings.tls, settings.clash, settings.webhook, settings.nginx),
         "tgbot": AppInstaller("telegram_bot"),
-        "disabler": AppInstaller("disabler"),
         "webhook": AppInstaller("webhook"),
     }
 
@@ -72,7 +71,6 @@ def _build_controllers(settings: Settings):
         "mtproxyl": MTProxyLController(settings.mtproxyl),
         "trusttunnel": SystemdUnitController(settings.trusttunnel.service_name),
         "tgbot": AppController("telegram_bot"),
-        "disabler": AppController("disabler"),
         "webhook": AppController("webhook"),
     }
 

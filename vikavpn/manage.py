@@ -3,14 +3,15 @@ import asyncio
 import inspect
 import sys
 
+from src.core.url_build.file import build_origin, build_clash_config_url
+from src.core.url_build.link import build_telegram_proxy_url, build_bot_auth_url
 from src.db.connection import create_tables, Session
-from src.db.repo import UserRepository
+from src.db.repo import UserRepository, options
 from src.infrastructure.manager import installation, control, configure
 from src.infrastructure.manager.registry import Registry
 from src.settings import Settings
-from src.users.importer import import_users_from_file
-from src.users.info import get_user_info
-from src.users.subscription import set_expire
+from src.core.users.importer import import_users_from_file
+from src.core.users.flow.subscription import set_expire
 
 
 # ============================================================
@@ -39,7 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
             "  python3 manage.py configure apply hysteria,mita\n"
             "  python3 manage.py user import users.toml\n"
             "  python3 manage.py user info alice\n"
-            "  python3 manage.py user set-expire alice 2026-01-01\n"
+            "  python3 manage.py user set-expire alice 01.01.2027 00:00\n"
         ),
     )
 
@@ -163,7 +164,7 @@ async def handle_user(args: argparse.Namespace, registry: Registry):
         count = await import_users_from_file(args.file)
         print(f"Импортировано пользователей: {count}")
     elif cmd == "info":
-        print(await get_user_info(args.name, registry.settings))
+        print(await _build_user_info(args.name, registry.settings))
     elif cmd == "set-expire":
         await _set_expire(args.name, args.until)
 
@@ -174,9 +175,52 @@ async def _set_expire(name: str, until: str):
         user = await repo.get_by_name(name)
         if user is None:
             raise RuntimeError(f"Пользователь {name} не найден")
-        await set_expire(user, until)
+        set_expire(user, until)
         await session.commit()
-    print(f"{name}: подписка истекает {user.sub_expires_at:%d.%m.%Y} (UTC)")
+    print(f"{name}: подписка истекает {user.sub_expires_at:%d.%m.%Y %H:%M} (UTC)")
+
+
+async def _build_user_info(name: str, settings: Settings) -> str:
+    """Получить форматированную информацию о пользователе по имени."""
+    async with Session() as session:
+        repo = UserRepository(session)
+        user = await repo.get_by_name(name, options=options.managed_options() + options.messenger_options())
+        if not user:
+            raise RuntimeError(f"Пользователь {name} не найден")
+
+        origin = build_origin(settings.tls.domain, settings.site.port)
+
+        clash_url = (
+            build_clash_config_url(user, origin, settings.clash.configs_urlpath)
+            if user.vpn_user else ""
+        )
+        tg_proxy_url = (
+            build_telegram_proxy_url(
+                user,
+                settings.mtproxyl.sni,
+                settings.tls.domain,
+                settings.mtproxyl.port,
+            )
+            if user.proxy_user else ""
+        )
+
+        return (
+            f"Информация о пользователе:\n"
+            f"  Имя: {user.name}\n"
+            f"  Пароль: {user.password}\n"
+            f"  UUID: {user.uuid}\n"
+            f"  Активен: {user.is_active}\n"
+            f"  Использует прокси: {user.proxy_user}\n"
+            f"  Использует VPN: {user.vpn_user}\n"
+            f"  Использует IOS: {user.ios_user}\n"
+            f"  Управляет: {', '.join(m.managed.name for m in user.managed_links)}\n"
+            f"  Подписка истекает: {user.sub_expires_at:%d.%m.%Y %H:%M}\n"
+            f"  TG id: {user.telegram_id}\n"
+            f"\n  Clash-ссылка:\n  {clash_url}\n"
+            f"\n  TG-прокси:\n  {tg_proxy_url}\n"
+            f"\n  Ссылка для входа в бота:\n  "
+            f"{build_bot_auth_url(settings.telegram_bot.username, user)}\n"
+        )
 
 
 # ============================================================

@@ -1,11 +1,11 @@
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-from src.settings.base import BaseSettingsConfigDict
+from src.settings.base import make_config
 
 
 class TelegramBotSettings(BaseSettings):
-    model_config = BaseSettingsConfigDict(env_prefix="TELEGRAM_")
+    model_config = make_config(env_prefix="TELEGRAM_")
 
     token: str
     username: str

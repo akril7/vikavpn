@@ -2,7 +2,7 @@ from src.settings import MTProxyLSettings
 from src.db.models import Users
 from src.core.interfaces.configurator import Configurator
 from src.infrastructure.system.subprocess import run_with_check, check_root
-from src.users.filters import filter_proxy_users
+from src.core.users.filters import filter_proxy_users
 
 from .render import render_secrets
 

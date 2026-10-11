@@ -4,9 +4,9 @@ from aiogram.types import CallbackQuery
 
 from src.core.url_build.file import build_clash_video_guide_url, build_origin
 from src.settings import Settings
-from ..deps import load_user
+from ..deps import get_user
 from ..keyboards import auth_menu, main_menu, back_menu
-from ..render import render_start_not_authorized, render_help
+from src.texts.render import render_start_not_authorized, render_help
 
 router = Router()
 
@@ -14,7 +14,7 @@ router = Router()
 @router.callback_query(F.data == "menu:main")
 async def cb_main(call: CallbackQuery, state: FSMContext):
     await state.clear()
-    user = await load_user(call.from_user.id)
+    user = await get_user(call.from_user.id)
     if user is None:
         await call.message.edit_text(
             render_start_not_authorized(),

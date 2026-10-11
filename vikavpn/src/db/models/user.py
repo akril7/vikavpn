@@ -10,6 +10,11 @@ from src.core.utils.dt import utcnow
 from .base import IdMixin, Base
 from ..enums import Messenger
 
+if TYPE_CHECKING:
+    from .management import UserManagement
+    from .messenger import UserMessenger
+    from .payment import Payment
+
 
 class User(IdMixin, Base):
     __tablename__ = "users"
@@ -27,6 +32,7 @@ class User(IdMixin, Base):
         back_populates="manager",
         cascade="all, delete-orphan",
         passive_deletes=True,
+        lazy="raise",
     )
 
     manager_links: Mapped[list["UserManagement"]] = relationship(
@@ -34,17 +40,20 @@ class User(IdMixin, Base):
         back_populates="managed",
         cascade="all, delete-orphan",
         passive_deletes=True,
+        lazy="raise",
     )
 
     messenger_links: Mapped[list["UserMessenger"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
+        lazy="raise",
     )
 
     payments: Mapped[list["Payment"]] = relationship(
         secondary="payment_users",
         back_populates="users",
         passive_deletes=True,
+        lazy="raise",
     )
 
     @property
@@ -55,13 +64,6 @@ class User(IdMixin, Base):
     def telegram_id(self) -> int | None:
         for link in self.messenger_links:
             if link.messenger == Messenger.TELEGRAM:
-                return link.external_id
-        return None
-
-    @property
-    def vk_id(self) -> int | None:
-        for link in self.messenger_links:
-            if link.messenger == Messenger.VK:
                 return link.external_id
         return None
 

@@ -2,7 +2,7 @@ from src.settings import TLSSettings, TrustTunnelSettings
 from src.db.models import Users
 from src.core.interfaces.configurator import Configurator
 from src.infrastructure.system.systemctl import SystemdUnit
-from src.users.filters import filter_vpn_users
+from src.core.users.filters import filter_vpn_users
 
 from .render import render_hosts, render_settings, render_users
 

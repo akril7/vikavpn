@@ -1,10 +1,12 @@
 from datetime import datetime
 from decimal import Decimal
 
-from src.apps.telegram_bot.service import texts
-from src.apps.telegram_bot.service.profile import ProfileView
-from src.apps.telegram_bot.service.texts import IOS_URL, ANDROID_URL, WINDOWS_URL
+from . import texts
+from .texts import IOS_URL, ANDROID_URL, WINDOWS_URL
+from src.core.users.flow.profile import ProfileView
 
+
+# ---- AUTHORIZATION ----
 
 def render_start_not_authorized() -> str:
     return texts.START_NOT_AUTHORIZED
@@ -30,9 +32,19 @@ def render_platform_question() -> str:
     return texts.REGISTER_CHOOSE_PLATFORM
 
 
-def render_register_success(name: str, password: str) -> str:
-    return texts.REGISTER_SUCCESS.format(name=name, password=password)
+def render_register_success() -> str:
+    return texts.REGISTER_SUCCESS
 
+
+def render_register_you() -> str:
+    return texts.REGISTER_YOU
+
+
+def render_generate_unique_name_error() -> str:
+    return texts.GENERATE_UNIQUE_NAME_ERROR
+
+
+# ---- PROFILE ----
 
 def render_profile(profile: ProfileView) -> str:
     status = (
@@ -51,6 +63,8 @@ def render_profile(profile: ProfileView) -> str:
     return text
 
 
+# ---- RENEW ----
+
 def render_renew_choose_mode() -> str:
     return texts.RENEW_CHOOSE_MODE
 
@@ -66,6 +80,8 @@ def render_renew_choose_days() -> str:
 def render_renew_choose_target() -> str:
     return texts.RENEW_CHOOSE_TARGET
 
+
+# ---- PAYMENT ----
 
 def render_payment_created(amount: Decimal) -> str:
     return texts.PAYMENT_CREATED.format(amount=f"{amount:.2f}")
@@ -84,6 +100,8 @@ def render_payment_paid(expires_at: datetime) -> str:
         expires_at=expires_at.strftime("%d.%m.%Y")
     )
 
+
+# ---- HELP ----
 
 def render_help(video_url: str, admin_username: str) -> str:
     return texts.HELP_TEXT.format(ios_url=IOS_URL,

@@ -4,16 +4,17 @@ from aiogram.types import CallbackQuery, Message
 
 from src.db.connection import Session
 from src.db.enums import Messenger
+from src.db.repo import UserRepository, UserMessengerRepository
 
-from ..service.auth import AuthResult, authorize_by_link
-from ..keyboards import auth_menu, back_menu, main_menu
-from ..render import (
+from src.core.users.flow.auth import AuthResult, authorize_by_link
+from src.texts.render import (
     render_auth_already_bound,
     render_auth_ask_link,
     render_auth_success,
     render_auth_user_not_found,
     render_start_not_authorized,
 )
+from ..keyboards import auth_menu, back_menu, main_menu
 from ..states import Auth
 
 router = Router()
@@ -41,21 +42,26 @@ async def cb_back_to_auth(call: CallbackQuery, state: FSMContext):
 
 @router.message(Auth.wait_link)
 async def msg_auth_link(message: Message, state: FSMContext):
+    await state.clear()
+
     async with Session() as session:
+        user_repo = UserRepository(session)
+        messager_repo = UserMessengerRepository(session)
         result, user = await authorize_by_link(
-            session,
+            user_repo,
+            messager_repo,
             Messenger.TELEGRAM,
             message.from_user.id,
             message.text or "",
         )
+        await session.commit()
 
     if result == AuthResult.USER_NOT_FOUND:
         await message.answer(render_auth_user_not_found())
         return
-    if result == AuthResult.ALREADY_BOUND:
+    elif result == AuthResult.ALREADY_BOUND:
         await message.answer(render_auth_already_bound())
         return
 
-    await state.clear()
     await message.answer(render_auth_success())
     await message.answer("Главное меню", reply_markup=main_menu())

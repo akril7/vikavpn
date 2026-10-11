@@ -3,14 +3,15 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from src.db.enums import Tariff
-from src.apps.telegram_bot.service import texts
-from src.apps.telegram_bot.service.menu import RenewMode
+from src.texts import texts
+from src.core.users.flow.renew import RenewMode
 from src.core.payment.plans import get_plans
+from src.db.repo import options
 from src.settings import Settings
 
-from ..deps import load_user_with_managed, managed_targets, load_user
+from ..deps import managed_targets, get_user_or_alert
 from ..keyboards import days_menu, renew_menu, targets_menu, tariff_menu
-from ..render import (
+from src.texts.render import (
     render_renew_choose_days,
     render_renew_choose_tariff,
     render_renew_choose_target, render_renew_choose_mode,
@@ -24,9 +25,8 @@ router = Router()
 
 @router.callback_query(F.data == "menu:renew")
 async def cb_renew(call: CallbackQuery, state: FSMContext):
-    user = await load_user_with_managed(call.from_user.id)
+    user = await get_user_or_alert(call, options=options.managed_options())
     if user is None:
-        await call.answer("Пользователь не найден", show_alert=True)
         return
 
     await state.clear()
@@ -39,7 +39,12 @@ async def cb_renew(call: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("renew:"))
 async def cb_renew_mode(call: CallbackQuery, state: FSMContext):
-    mode = RenewMode(call.data.split(":", 1)[1])
+    try:
+        mode = RenewMode(call.data.split(":", 1)[1])
+    except ValueError:
+        await call.answer()
+        return
+
     await state.update_data(mode=mode.value)
     await state.set_state(Renew.tariff)
 
@@ -52,16 +57,23 @@ async def cb_renew_mode(call: CallbackQuery, state: FSMContext):
             full_price=full_plans[0].price,
         ),
     )
+
     await call.answer()
 
 
 @router.callback_query(Renew.tariff, F.data.startswith("tariff:"))
 async def cb_renew_tariff(call: CallbackQuery, state: FSMContext):
-    tariff = Tariff(call.data.split(":", 1)[1])
+    try:
+        tariff = Tariff(call.data.split(":", 1)[1])
+    except ValueError:
+        await call.answer()
+        return
 
     if tariff == Tariff.PROXY:
-        user = await load_user(call.from_user.id)
-        if user is not None and user.vpn_user and user.is_active:
+        user = await get_user_or_alert(call)
+        if user is None:
+            return
+        elif user.vpn_user and user.is_active:
             await call.answer(texts.RENEW_PROXY_BLOCKED_BY_VPN, show_alert=True)
             return
 
@@ -77,14 +89,26 @@ async def cb_renew_tariff(call: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Renew.days, F.data.startswith("days:"))
 async def cb_renew_days(call: CallbackQuery, state: FSMContext, settings: Settings):
-    days = int(call.data.split(":", 1)[1])
+    try:
+        days = int(call.data.split(":", 1)[1])
+    except ValueError:
+        await call.answer()
+        return
+
     await state.update_data(days=days)
 
     data = await state.get_data()
-    mode = RenewMode(data["mode"])
+    try:
+        mode = RenewMode(data["mode"])
+    except (ValueError, KeyError):
+        await call.answer()
+        return
 
     if mode == RenewMode.OTHER:
-        user = await load_user_with_managed(call.from_user.id)
+        user = await get_user_or_alert(call, options=options.managed_options())
+        if not user:
+            return
+
         await state.set_state(Renew.target)
         await call.message.edit_text(
             render_renew_choose_target(),
@@ -98,7 +122,12 @@ async def cb_renew_days(call: CallbackQuery, state: FSMContext, settings: Settin
 
 @router.callback_query(Renew.target, F.data.startswith("target:"))
 async def cb_renew_target(call: CallbackQuery, state: FSMContext, settings: Settings):
-    target_id = int(call.data.split(":", 1)[1])
+    try:
+        target_id = int(call.data.split(":", 1)[1])
+    except ValueError:
+        await call.answer()
+        return
+
     await state.update_data(target_id=target_id)
 
     await create_payment_for_renew(call, state, settings)

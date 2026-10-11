@@ -3,7 +3,6 @@ from src.settings.endpoints.hysteria import HysteriaSettings
 from src.settings.endpoints.mita import MitaSettings
 from src.settings.endpoints.mtproxyl import MTProxyLSettings
 from src.settings.endpoints.trusttunnel import TrustTunnelSettings
-from src.settings.apps.disabler import DisablerSettings
 from src.settings.apps.telegram import TelegramBotSettings
 from src.settings.apps.webhook import WebhookSettings
 from src.settings.apps.yoomoney import YoomoneySettings
@@ -22,9 +21,9 @@ class Settings:
     def __init__(
         self,
         *,
-        tls: TLSSettings | None = None,
-        clash: ClashSettings | None = None,
-        site: SiteSettings | None = None,
+        tls_: TLSSettings | None = None,
+        clash_: ClashSettings | None = None,
+        site_: SiteSettings | None = None,
         nginx: NginxSettings | None = None,
         mita: MitaSettings | None = None,
         trusttunnel: TrustTunnelSettings | None = None,
@@ -32,14 +31,13 @@ class Settings:
         mtproxyl: MTProxyLSettings | None = None,
         yoomoney: YoomoneySettings | None = None,
         telegram_bot: TelegramBotSettings | None = None,
-        disabler: DisablerSettings | None = None,
         webhook: WebhookSettings | None = None,
     ) -> None:
-        self.tls = tls if tls is not None else TLSSettings()
-        self.clash = clash if clash is not None else ClashSettings()
+        self.tls = tls_ if tls_ is not None else TLSSettings()
+        self.clash = clash_ if clash_ is not None else ClashSettings()
         self.webhook = webhook if webhook is not None else WebhookSettings()
 
-        self.site = site if site is not None else SiteSettings()
+        self.site = site_ if site_ is not None else SiteSettings()
         self.nginx = nginx if nginx is not None else NginxSettings()
 
         self.mita = mita if mita is not None else MitaSettings()
@@ -49,7 +47,6 @@ class Settings:
 
         self.yoomoney = yoomoney if yoomoney is not None else YoomoneySettings()
         self.telegram_bot = telegram_bot if telegram_bot is not None else TelegramBotSettings()
-        self.disabler = disabler if disabler is not None else DisablerSettings()
 
 
 __all__ = [
@@ -64,6 +61,5 @@ __all__ = [
     "MTProxyLSettings",
     "YoomoneySettings",
     "TelegramBotSettings",
-    "DisablerSettings",
     "WebhookSettings",
 ]

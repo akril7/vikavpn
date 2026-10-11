@@ -108,13 +108,16 @@ class UserMessengerRepository(BaseRepository[UserMessenger]):
     ) -> UserMessenger:
         """ Привязать messenger-аккаунт к пользователю """
         existing = await self.get_by_external(messenger, external_id)
-
         if existing is not None:
             if existing.user_id == user_id:
                 return existing
-            raise MessengerAlreadyBoundError(
-                messenger, external_id, existing.user_id
-            )
+            raise MessengerAlreadyBoundError(messenger, external_id, existing.user_id)
+
+        by_user = await self.get_by_user_and_messenger(user_id, messenger)
+        if by_user is not None:
+            by_user.external_id = external_id
+            await self.session.flush()
+            return by_user
 
         obj = UserMessenger(
             user_id=user_id,

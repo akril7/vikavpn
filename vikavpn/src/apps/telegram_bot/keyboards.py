@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CopyTextButton
 
-from src.apps.telegram_bot.service import texts
-from src.apps.telegram_bot.service.menu import RenewMode
+from src.texts import texts
+from src.core.users.flow.renew import RenewMode
 from src.core.payment.plans import Plan
 
 
@@ -81,7 +81,7 @@ def tariff_menu(proxy_price: int, full_price: int) -> InlineKeyboardMarkup:
     ])
 
 
-def days_menu(plans: list[Plan]) -> InlineKeyboardMarkup:
+def days_menu(plans: tuple[Plan, ...]) -> InlineKeyboardMarkup:
     rows = [
         [InlineKeyboardButton(
             text=texts.BTN_DAYS.format(days=p.days, price=p.price),

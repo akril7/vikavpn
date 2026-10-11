@@ -7,7 +7,7 @@ from .base import Base
 
 
 if TYPE_CHECKING:
-    pass
+    from .user import User
 
 
 class UserManagement(Base):
@@ -30,10 +30,12 @@ class UserManagement(Base):
     manager: Mapped["User"] = relationship(
         foreign_keys=[manager_id],
         back_populates="managed_links",
+        lazy="raise",
     )
     managed: Mapped["User"] = relationship(
         foreign_keys=[managed_id],
         back_populates="manager_links",
+        lazy="raise",
     )
 
     def __repr__(self) -> str:

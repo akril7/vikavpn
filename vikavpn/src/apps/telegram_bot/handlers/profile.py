@@ -1,19 +1,20 @@
 from aiogram import F, Router
 from aiogram.types import CallbackQuery
 
-from src.apps.telegram_bot.service.profile import build_profile
+from src.core.users.flow.profile import build_profile
+from src.db.repo import options
 from src.settings import Settings
 
-from ..deps import load_user_with_managed
+from ..deps import get_user
 from ..keyboards import profile_menu
-from ..render import render_profile
+from src.texts.render import render_profile
 
 router = Router()
 
 
 @router.callback_query(F.data == "menu:profile")
 async def cb_profile(call: CallbackQuery, settings: Settings):
-    user = await load_user_with_managed(call.from_user.id)
+    user = await get_user(call.from_user.id, options=options.messenger_options() + options.managed_options())
     if user is None:
         await call.answer("Пользователь не найден", show_alert=True)
         return

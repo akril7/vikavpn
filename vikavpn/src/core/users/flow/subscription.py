@@ -14,6 +14,6 @@ def extend(user: User, tariff: Tariff, days: int):
     user.vpn_user = tariff == Tariff.FULL
 
 
-async def set_expire(user: User, until: str):
+def set_expire(user: User, until: str):
     """Установить срок окончания подписки."""
-    user.sub_expires_at = datetime.strptime(until, "%Y-%m-%d %H:%M").replace(tzinfo=UTC)
+    user.sub_expires_at = datetime.strptime(until, "%d.%m.%Y %H:%M").replace(tzinfo=UTC)

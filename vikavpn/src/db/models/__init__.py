@@ -1,13 +1,13 @@
-from typing import Iterator
+from typing import Sequence
 
 from .base import Base, IdMixin, CreateAtMixin
 from .user import User
-from .user_management import UserManagement
-from .user_messenger import UserMessenger
+from .management import UserManagement
+from .messenger import UserMessenger
 from .payment import Payment
 from .payment_user import PaymentUser
 
-Users = Iterator[User]
+Users = Sequence[User]
 
 __all__ = [
     "Base", "IdMixin", "CreateAtMixin",

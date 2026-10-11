@@ -2,7 +2,7 @@ from enum import StrEnum
 
 from pydantic_settings import BaseSettings
 
-from src.settings.base import BaseSettingsConfigDict
+from src.settings.base import make_config
 
 
 class MitaProtocol(StrEnum):
@@ -11,7 +11,7 @@ class MitaProtocol(StrEnum):
 
 
 class MitaSettings(BaseSettings):
-    model_config = BaseSettingsConfigDict(env_prefix="MITA_")
+    model_config = make_config(env_prefix="MITA_")
 
     # Диапазон портов для подключения
     port_range: str = "10000-10127"

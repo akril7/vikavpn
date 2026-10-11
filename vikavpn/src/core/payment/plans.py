@@ -11,7 +11,7 @@ class Plan:
     label: str
 
 
-PLANS: list[Plan] = [
+PLANS: tuple[Plan, ...] = (
     Plan(Tariff.PROXY, 31, 70, "1 месяц"),
     Plan(Tariff.PROXY, 62, 140, "2 месяца"),
     Plan(Tariff.PROXY, 93, 210, "3 месяца"),
@@ -20,11 +20,11 @@ PLANS: list[Plan] = [
     Plan(Tariff.FULL, 62, 240, "2 месяца"),
     Plan(Tariff.FULL, 93, 360, "3 месяца"),
     Plan(Tariff.FULL, 186, 720, "6 месяцев"),
-]
+)
 
 
-def get_plans(tariff: Tariff) -> list[Plan]:
-    return [plan for plan in PLANS if plan.tariff == tariff]
+def get_plans(tariff: Tariff) -> tuple[Plan, ...]:
+    return tuple(plan for plan in PLANS if plan.tariff == tariff)
 
 
 def get_plan(tariff: Tariff, days: int) -> Plan | None:

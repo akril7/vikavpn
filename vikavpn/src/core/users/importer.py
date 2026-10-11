@@ -37,11 +37,14 @@ async def import_users_from_file(path: str) -> int:
             )
             users.append(user)
 
-        manager = await user_repo.get_by_name(raw["name"])
         for raw in users_data:
             managed_users = raw.get("managed_users")
             if not managed_users:
                 continue
+
+            manager = await user_repo.get_by_name(raw["name"])
+            if manager is None:
+                raise RuntimeError(f"manager {raw['name']} not found")
 
             for username in managed_users:
                 managed = await user_repo.get_by_name(username)
@@ -49,8 +52,8 @@ async def import_users_from_file(path: str) -> int:
                     raise RuntimeError(f"manager or managed name is null")
 
                 await manage_repo.create(
-                    manager=manager,
-                    managed=managed,
+                    manager_id=manager.id,
+                    managed_id=managed.id,
                 )
 
         logger.info("Commit")

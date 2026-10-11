@@ -6,6 +6,7 @@ START_NOT_AUTHORIZED = (
 
 BTN_AUTH_BY_LINK = "🔗 Авторизоваться по ссылке"
 BTN_REGISTER = "🆕 Регистрация"
+REGISTER_YOU = "Регистрируем вас..."
 
 AUTH_ASK_LINK = (
     "Пришлите ссылку, которую вы получили ранее "
@@ -15,6 +16,7 @@ AUTH_ASK_LINK = (
 AUTH_SUCCESS = "✅ Вы успешно авторизованы!"
 AUTH_USER_NOT_FOUND = "❌ Пользователь не найден."
 AUTH_ALREADY_BOUND = "❌ Этот аккаунт уже привязан к другому пользователю."
+GENERATE_UNIQUE_NAME_ERROR = "❌ Не получилось сгенерировать уникальное имя, попробуйте еще раз"
 
 REGISTER_CHOOSE_PLATFORM = (
     "📱 У вас iOS?\n\n"

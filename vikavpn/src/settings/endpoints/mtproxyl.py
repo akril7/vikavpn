@@ -5,7 +5,7 @@ from pathlib import Path
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-from src.settings.base import BaseSettingsConfigDict
+from src.settings.base import make_config
 
 
 class MTProxyLMode(StrEnum):
@@ -14,7 +14,7 @@ class MTProxyLMode(StrEnum):
 
 
 class MTProxyLSettings(BaseSettings):
-    model_config = BaseSettingsConfigDict(env_prefix="MTPROXYL_")
+    model_config = make_config(env_prefix="MTPROXYL_")
 
     # Порт для подлючения
     port: int = 7443
