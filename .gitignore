@@ -1,6 +1,6 @@
 .venv
 .idea
-vikavpn/external
+vikavpn/.external
 
 .env
 *.db

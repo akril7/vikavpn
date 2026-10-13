@@ -9,7 +9,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 FILES_DIR = BASE_DIR / "files"
 
-DEFAULT_INSTALL_DIR = BASE_DIR / "external"
+DEFAULT_INSTALL_DIR = BASE_DIR / ".external"
 
 DEBUG = get("DEBUG", "").lower() in ("yes", "true", "1")
 

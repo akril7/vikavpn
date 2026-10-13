@@ -52,32 +52,32 @@ class SiteInstaller(Installer):
             tls=self.__tls
         )
 
-        logger.info("Save index.html")
+        logger.debug("Save index.html")
         self.__root.mkdir(parents=True, exist_ok=True)
         (self.__root / "index.html").write_text(index_html)
 
-        logger.info("Save site config")
+        logger.debug("Save site config")
         self.__site_available.parent.mkdir(parents=True, exist_ok=True)
         self.__site_available.write_text(nginx_config)
 
-        logger.info("Enable site")
+        logger.debug("Enable site")
         self.__site_enabled.parent.mkdir(parents=True, exist_ok=True)
         self.__site_enabled.unlink(missing_ok=True)
         self.__site_enabled.symlink_to(self.__site_available)
 
-        logger.info("Reload nginx")
+        logger.debug("Reload nginx")
         self.__service.reload()
 
     def _uninstall(self):
-        logger.info("Disable site")
+        logger.debug("Disable site")
         self.__site_enabled.unlink(missing_ok=True)
 
-        logger.info("Remove site config")
+        logger.debug("Remove site config")
         self.__site_available.unlink(missing_ok=True)
 
         if self.__root.exists():
-            logger.info("Remove site root dir")
+            logger.debug("Remove site root dir")
             shutil.rmtree(self.__root)
 
-        logger.info("Reload nginx")
+        logger.debug("Reload nginx")
         self.__service.reload()

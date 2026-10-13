@@ -30,10 +30,10 @@ class TrustTunnelInstaller(SystemdUnitInstaller):
 
         archive_path = self.__install_dir / Path(urlparse(self.__download_link).path).name
 
-        logger.info(f"Get trusttunel archive")
+        logger.debug(f"Get trusttunel archive")
         download_file(self.__download_link, archive_path)
 
-        logger.info("Unpack trusttunel archive")
+        logger.debug("Unpack trusttunel archive")
         shutil.unpack_archive(archive_path, self.__install_dir)
         # unpack_clean(archive_path, self.__install_dir)
 
@@ -46,7 +46,7 @@ class TrustTunnelInstaller(SystemdUnitInstaller):
             if not (self.__install_dir / "trusttunnel_endpoint").exists():
                 raise FileNotFoundError(f"{self.__install_dir} is not dir of trusttunnel")
 
-            logger.info("Remove trusttunnel dir")
+            logger.debug("Remove trusttunnel dir")
             shutil.rmtree(self.__install_dir)
 
         super()._uninstall()

@@ -56,10 +56,10 @@ class HysteriaEndpointInstaller(SystemdUnitInstaller):
             logger.info("Install docker")
             docker.install_docker()
 
-        logger.info("Pull image")
+        logger.debug("Pull image")
         docker.pull_image(self.__image_name)
 
-        logger.info(f"Save config {self.__config_path}")
+        logger.debug(f"Save config {self.__config_path}")
         self.__config_path.parent.mkdir(parents=True, exist_ok=True)
         self.__config_path.write_text(self.__config_content)
 
@@ -68,14 +68,14 @@ class HysteriaEndpointInstaller(SystemdUnitInstaller):
     def _uninstall(self):
         check_root()
 
-        logger.info("Remove hysteria systemd unit")
+        logger.debug("Remove hysteria systemd unit")
         super()._uninstall()
 
-        logger.info("Remove hysteria container")
+        logger.debug("Remove hysteria container")
         docker.remove_container(self.__container_name)
 
-        logger.info("Remove hysteria image")
+        logger.debug("Remove hysteria image")
         docker.remove_image(self.__image_name)
 
-        logger.info("Remove hysteria dir")
+        logger.debug("Remove hysteria dir")
         shutil.rmtree(self.__install_dir, ignore_errors=True)

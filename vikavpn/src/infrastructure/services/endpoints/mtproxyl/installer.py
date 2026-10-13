@@ -30,10 +30,10 @@ class MTProxyLInstaller(Installer):
 
         script_path = Path("/tmp/mtproxyl-install.sh")
 
-        logger.info("Get mtproxyl install script")
+        logger.debug("Get mtproxyl install script")
         download_file(self.__install_script_link, script_path)
 
-        logger.info("Run mtproxyl install script")
+        logger.debug("Run mtproxyl install script")
         cmd = ["sudo", "bash", script_path, "--",
                "--mode", str(self.__mode),
                "--port", str(self.__port),
@@ -48,7 +48,7 @@ class MTProxyLInstaller(Installer):
         os.close(master)
 
     def _uninstall(self):
-        logger.info("Run mtproxyl uninstall command")
+        logger.debug("Run mtproxyl uninstall command")
         master, proc = run_pty_proc(["mtproxyl", "uninstall"])
         os.write(master, "yes\n\n".encode())
         proc.wait()

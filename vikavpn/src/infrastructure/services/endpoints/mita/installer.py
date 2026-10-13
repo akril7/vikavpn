@@ -25,20 +25,20 @@ class MitaInstaller(Installer):
     def _install(self):
         check_root()
 
-        logger.info("Get mita package")
+        logger.debug("Get mita package")
         download_file(self.__package_download_link, DEB_STORE_PATH)
 
-        logger.info("Install package")
+        logger.debug("Install package")
         install_deb(str(DEB_STORE_PATH))
 
-        logger.info("Add user to mita group")
+        logger.debug("Add user to mita group")
         add_user_to_group("root", "mita")
 
     def _uninstall(self):
         check_root()
 
-        logger.info("Delete mita package")
+        logger.debug("Delete mita package")
         uninstall_deb("mita")
 
-        logger.info("Delete mita configuration")
+        logger.debug("Delete mita configuration")
         shutil.rmtree("/etc/mita")

@@ -18,13 +18,13 @@ class HysteriaInstaller(Installer):
         return self.__endpoint.is_installed and self.__auth.is_installed
 
     def _install(self):
-        logger.info("Installing hysteria endpoint")
+        logger.debug("Installing hysteria endpoint")
         self.__endpoint.install()
-        logger.info("Installing hysteria auth")
+        logger.debug("Installing hysteria auth")
         self.__auth.install()
 
     def _uninstall(self):
-        logger.info("Uninstalling hysteria auth")
+        logger.debug("Uninstalling hysteria auth")
         self.__auth.uninstall()
-        logger.info("Uninstalling hysteria endpoint")
+        logger.debug("Uninstalling hysteria endpoint")
         self.__endpoint.uninstall()
