@@ -7,6 +7,7 @@ from urllib.parse import quote_plus
 from aiohttp import web
 from loguru import logger
 
+from src.core.lifecycle.notify import notify_reload
 from src.core.payment.lifecycle import confirm_payment
 from src.db.connection import Session
 from src.db.repo import UserRepository, PaymentRepository, PaymentUserRepository
@@ -32,32 +33,39 @@ def verify_sign(data: Mapping[str, str], secret: str) -> bool:
 
 async def handle_payment(request: web.Request) -> web.Response:
     app = request.app
-
     data = dict(await request.post())
+
     label = data.get("label")
     amount = data.get("withdraw_amount")
 
     if not verify_sign(data, app["yoomoney_secret"]):
-        logger.warning("Неверная подпись")
+        logger.warning("Invalid yoomoney signature")
+        return web.Response(status=200)
 
-    elif not label:
-        logger.warning("Пустой label")
+    if not label:
+        logger.warning("Missing label in payment notification")
+        return web.Response(status=200)
 
-    elif not amount:
-        logger.warning("Пустой amount")
+    if not amount:
+        logger.warning("Missing amount in payment notification")
+        return web.Response(status=200)
 
-    else:
-        async with Session() as session:
-            user_repo = UserRepository(session)
-            payment_repo = PaymentRepository(session)
-            link_repo = PaymentUserRepository(session)
-            payment = await confirm_payment(user_repo, payment_repo, link_repo
-                                            , label, Decimal(amount))
+    async with Session() as session:
+        payment = await confirm_payment(
+            UserRepository(session),
+            PaymentRepository(session),
+            PaymentUserRepository(session),
+            label,
+            Decimal(amount),
+        )
+        await session.commit()
 
-            await session.commit()
-
-        if payment:
-            await app["disabler"].reschedule()
-            app["reloader"].schedule()
+    if payment:
+        # Платёж подтверждён — просим reload перепланировать tick по expiry.
+        # Если reload недоступен — не страшно: bootstrap подхватит на следующем старте.
+        await notify_reload(
+            app["reload_url"],
+            timeout=app["reload_timeout"],
+        )
 
     return web.Response(status=200)

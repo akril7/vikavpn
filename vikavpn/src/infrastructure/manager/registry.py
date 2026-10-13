@@ -43,12 +43,13 @@ class Registry:
 def _build_installers(settings: Settings):
     return {
         "mita": MitaInstaller(settings.mita),
-        "hysteria": HysteriaInstaller(settings.hysteria, settings.tls, settings.site, settings.webhook),
+        "hysteria": HysteriaInstaller(settings),
         "trusttunnel": TrustTunnelInstaller(settings.trusttunnel),
         "mtproxyl": MTProxyLInstaller(settings.mtproxyl, settings.tls),
-        "site": SiteInstaller(settings.site, settings.tls, settings.clash, settings.webhook, settings.nginx),
+        "site": SiteInstaller(settings),
+        "reloader": AppInstaller("reloader"),
+        "payments": AppInstaller("payments"),
         "tgbot": AppInstaller("telegram_bot"),
-        "webhook": AppInstaller("webhook"),
     }
 
 
@@ -70,8 +71,9 @@ def _build_controllers(settings: Settings):
         "hysteria": HysteriaController(settings.hysteria),
         "mtproxyl": MTProxyLController(settings.mtproxyl),
         "trusttunnel": SystemdUnitController(settings.trusttunnel.service_name),
+        "reloader": AppController("reloader"),
+        "payments": AppController("payments"),
         "tgbot": AppController("telegram_bot"),
-        "webhook": AppController("webhook"),
     }
 
 

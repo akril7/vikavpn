@@ -32,14 +32,11 @@ class MitaConfigurator(Configurator):
 
         run_with_check(["mita", "apply", "config", str(CONFIG_PATH)])
         self.__start_mita_service()
-        self.__service.reload()
+        run_with_check(["mita", "reload"])
 
         CONFIG_PATH.unlink(missing_ok=True)
 
     def __start_mita_service(self):
-        if self.__service.status:
-            return
-
         self.__service.start()
 
         if not self.__service.status:

@@ -26,8 +26,10 @@ BTN_PLATFORM_IOS = "Да, iOS"
 BTN_PLATFORM_OTHER = "Нет, Android/ПК/другое"
 
 REGISTER_SUCCESS = (
-    "✅ Вы зарегистрированы!\n\n"
-    "🎁 Пробный период: 5 дней (VPN + TG Proxy)\n\n"
+    "✅ Вы зарегистрированы!\n"
+    "Подождите пару секунд и можете подлючаться!\n\n"
+    
+    "🎁 Пробный период: 7 дней (VPN + TG Proxy)\n\n"
 )
 
 BTN_PROFILE = "👤 Профиль"

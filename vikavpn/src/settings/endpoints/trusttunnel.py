@@ -26,5 +26,5 @@ class TrustTunnelSettings(BaseSettings):
 
     # Ссылка для скачивания архива с бинарником
     archive_download_link: str = (
-        "https://github.com/akril7/TrustTunnel/releases/download/0.0.0/trusttunnel-patched-v1.1.0-linux-x86_64.tar.gz"
+        "https://github.com/akril7/TrustTunnel/releases/download/0.0.1/trusttunnel-patched-v1.1.0-linux-x86_64.tar.gz"
     )

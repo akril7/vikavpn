@@ -1,0 +1,21 @@
+[Unit]
+Description=Hysteria endpoint (docker)
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStartPre=-/usr/bin/docker rm -f {{ container_name }}
+ExecStart=/usr/bin/docker run --rm \
+    --name {{ container_name }} \
+    --network host \
+    -v {{ cert_path }}:/app/server.crt \
+    -v {{ key_path }}:/app/server.key \
+    -v {{ config_path }}:/etc/hysteria/server.yaml \
+    {{ image_name }}
+ExecStop=/usr/bin/docker stop {{ container_name }}
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

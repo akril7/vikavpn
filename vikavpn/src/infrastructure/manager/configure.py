@@ -3,7 +3,7 @@ from loguru import logger
 from src.db.models import User
 from src.db.connection import Session
 from src.db.repo import UserRepository
-from src.core.reloader import Reloader
+from src.core.lifecycle.reloader import Reloader
 
 from .registry import Registry
 

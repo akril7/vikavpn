@@ -1,24 +1,28 @@
+from src.core.interfaces import Controller
+from src.infrastructure.systemd import SystemdUnitController
 from src.settings import HysteriaSettings
-from src.core.interfaces.controller import Controller
-from src.infrastructure.system.docker import is_container_running, restart_container, start_container, stop_container
 
 
 class HysteriaController(Controller):
-    def __init__(self, config: HysteriaSettings):
-        self.__container_name = config.docker_container_name
+    def __init__(self, hysteria: HysteriaSettings):
+        self.__endpoint = SystemdUnitController(hysteria.service_name)
+        self.__auth = SystemdUnitController(f"{hysteria.service_name}-auth")
 
     @property
     def status(self) -> bool:
-        return is_container_running(self.__container_name)
+        return self.__endpoint.status and self.__auth.status
 
     def start(self):
-        start_container(self.__container_name)
+        self.__endpoint.start()
+        self.__auth.start()
 
     def stop(self):
-        stop_container(self.__container_name)
+        self.__auth.stop()
+        self.__endpoint.stop()
 
     def restart(self):
-        restart_container(self.__container_name)
+        self.__endpoint.restart()
+        self.__auth.restart()
 
     def reload(self):
-        pass
+        self.__endpoint.reload()

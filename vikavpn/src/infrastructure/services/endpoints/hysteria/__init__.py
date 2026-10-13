@@ -3,5 +3,5 @@ from .controller import HysteriaController
 
 __all__ = [
     "HysteriaInstaller",
-    "HysteriaController",
+    "HysteriaController"
 ]

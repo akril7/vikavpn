@@ -5,7 +5,7 @@ from apscheduler.triggers.base import BaseTrigger
 from apscheduler.triggers.date import DateTrigger
 from loguru import logger
 
-from src.core.reloader import Reloader
+from src.core.lifecycle.reloader import Reloader
 from src.db.connection import Session
 from src.db.repo import UserRepository
 
@@ -16,7 +16,7 @@ FALLBACK_INTERVAL = timedelta(hours=1)
 MISFIRE_GRACE_SECONDS = 60
 
 
-class Disabler:
+class ExpiryScheduler:
     """Планирует reload конфигов в момент истечения ближайшей подписки"""
 
     def __init__(self, reloader: Reloader) -> None:
@@ -26,7 +26,7 @@ class Disabler:
     def start(self) -> None:
         if not self._scheduler.running:
             self._scheduler.start()
-            logger.info("Disabler scheduler started")
+            logger.info("Scheduler started")
 
     async def stop(self) -> None:
         if self._scheduler.running:
@@ -61,12 +61,12 @@ class Disabler:
 
     async def _tick(self) -> None:
         try:
-            logger.info("Disabler tick: applying active users")
+            logger.info("Applying active users")
             await self._reloader.flush()
             await self.reschedule()
         except Exception:
             logger.exception(
-                "Disabler tick failed, retrying in {}", FALLBACK_INTERVAL
+                "Tick failed, retrying in {}", FALLBACK_INTERVAL
             )
             self._add_job(
                 DateTrigger(run_date=datetime.now(UTC) + FALLBACK_INTERVAL)

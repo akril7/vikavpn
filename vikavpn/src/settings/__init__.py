@@ -4,7 +4,8 @@ from src.settings.endpoints.mita import MitaSettings
 from src.settings.endpoints.mtproxyl import MTProxyLSettings
 from src.settings.endpoints.trusttunnel import TrustTunnelSettings
 from src.settings.apps.telegram import TelegramBotSettings
-from src.settings.apps.webhook import WebhookSettings
+from src.settings.apps.reloader import ReloaderSettings
+from src.settings.apps.payments import PaymentsSettings
 from src.settings.apps.yoomoney import YoomoneySettings
 from src.settings.site import SiteSettings
 from src.settings.site.nginx import NginxSettings
@@ -29,13 +30,14 @@ class Settings:
         trusttunnel: TrustTunnelSettings | None = None,
         hysteria: HysteriaSettings | None = None,
         mtproxyl: MTProxyLSettings | None = None,
-        yoomoney: YoomoneySettings | None = None,
+        yoomoney_: YoomoneySettings | None = None,
         telegram_bot: TelegramBotSettings | None = None,
-        webhook: WebhookSettings | None = None,
+        reloader: ReloaderSettings | None = None,
+        payments: PaymentsSettings | None = None,
     ) -> None:
         self.tls = tls_ if tls_ is not None else TLSSettings()
         self.clash = clash_ if clash_ is not None else ClashSettings()
-        self.webhook = webhook if webhook is not None else WebhookSettings()
+        self.yoomoney = yoomoney_ if yoomoney_ is not None else YoomoneySettings()
 
         self.site = site_ if site_ is not None else SiteSettings()
         self.nginx = nginx if nginx is not None else NginxSettings()
@@ -45,8 +47,9 @@ class Settings:
         self.hysteria = hysteria if hysteria is not None else HysteriaSettings()
         self.mtproxyl = mtproxyl if mtproxyl is not None else MTProxyLSettings()
 
-        self.yoomoney = yoomoney if yoomoney is not None else YoomoneySettings()
         self.telegram_bot = telegram_bot if telegram_bot is not None else TelegramBotSettings()
+        self.reloader = reloader if reloader is not None else ReloaderSettings()
+        self.payments = payments if payments is not None else PaymentsSettings()
 
 
 __all__ = [
@@ -61,5 +64,6 @@ __all__ = [
     "MTProxyLSettings",
     "YoomoneySettings",
     "TelegramBotSettings",
-    "WebhookSettings",
+    "ReloaderSettings",
+    "PaymentsSettings",
 ]

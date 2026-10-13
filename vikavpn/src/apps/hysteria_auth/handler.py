@@ -11,11 +11,15 @@ async def handle_auth(request: web.Request) -> web.Response:
     try:
         data = await request.json()
     except (JSONDecodeError, ContentTypeError):
-        return web.json_response({"ok": False, "msg": "access denied"}, status=200)
+        return web.json_response(
+            {"ok": False, "msg": "access denied"}, status=200
+        )
 
     auth = data.get("auth", "")
     if ":" not in auth:
-        return web.json_response({"ok": False, "msg": "access denied"}, status=200)
+        return web.json_response(
+            {"ok": False, "msg": "access denied"}, status=200
+        )
 
     raw_username, raw_password = auth.split(":", 1)
     username = raw_username.strip()

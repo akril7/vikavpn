@@ -14,7 +14,7 @@ WORDS_DICT = ("opos", "goga", "amer", "hehe", "afgn",
               "russ", "indi", "hool", "pool", "barb",
               "meme", "seqn", "bobr")
 
-TRIAL_DAYS = 5
+TRIAL_DAYS = 7
 PASSWORD_ALPHABET = string.ascii_letters + string.digits
 PASSWORD_LENGTH = 8
 

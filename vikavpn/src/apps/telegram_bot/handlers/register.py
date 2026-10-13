@@ -3,18 +3,19 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from sqlalchemy.exc import IntegrityError
 
-from src.core.reloader import Reloader
+from src.core.lifecycle.notify import notify_reload
 from src.db.connection import Session
 from src.db.enums import Messenger
 from src.db.repo import UserRepository, UserMessengerRepository
 from src.db.repo.messager import MessengerAlreadyBoundError
+from src.settings import Settings
 
-from ..deps import get_user
-
-from src.core.users.flow.registration import register_user
-from ..keyboards import main_menu, platform_menu
 from src.texts.render import render_platform_question, render_register_success, render_auth_already_bound, render_register_you, render_generate_unique_name_error
+from src.core.users.flow.registration import register_user
+
+from ..keyboards import main_menu, platform_menu
 from ..states import Register
+from ..deps import get_user
 
 router = Router()
 
@@ -35,7 +36,7 @@ async def cb_register(call: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(Register.platform, F.data.startswith("register:ios:"))
-async def cb_register_platform(call: CallbackQuery, state: FSMContext, reloader: Reloader):
+async def cb_register_platform(call: CallbackQuery, state: FSMContext, settings: Settings):
     ios = call.data.rsplit(":", 1)[-1] == "1"
 
     await state.clear()
@@ -62,7 +63,8 @@ async def cb_register_platform(call: CallbackQuery, state: FSMContext, reloader:
             return
 
         await session.commit()
-        reloader.schedule()
+
+    await notify_reload(settings.reloader.url, timeout=settings.payments.reload_timeout)
 
     await call.message.edit_text(
         render_register_success(),

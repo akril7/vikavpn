@@ -3,7 +3,7 @@ import shutil
 from loguru import logger
 
 from src.core.interfaces import Installer
-from src.settings import SiteSettings, NginxSettings, ClashSettings, WebhookSettings, TLSSettings
+from src.settings import Settings
 from src.settings.app import FILES_DIR
 
 from src.infrastructure.system.subprocess import deb_is_installed
@@ -13,26 +13,25 @@ from .render import render_index_html, render_nginx_config, Mount
 
 
 class SiteInstaller(Installer):
-    def __init__(self,
-                 site: SiteSettings,
-                 tls: TLSSettings,
-                 clash: ClashSettings,
-                 webhook: WebhookSettings,
-                 nginx: NginxSettings):
-        self.__title = site.title
-        self.__port = site.port
-        self.__extra_ports = site.extra_ports
-        self.__root = site.root_dir
+    def __init__(self, settings: Settings):
+        self.__title = settings.site.title
+        self.__port = settings.site.port
+        self.__extra_ports = settings.site.extra_ports
+        self.__root = settings.site.root_dir
 
-        self.__service = SystemdUnit(nginx.service_name)
-        self.__site_available = nginx.available_path / site.name
-        self.__site_enabled = nginx.enabled_path / site.name
-        self.__tls = tls
+        self.__service = SystemdUnit(settings.nginx.service_name)
+        self.__site_available = settings.nginx.available_path / settings.site.name
+        self.__site_enabled = settings.nginx.enabled_path / settings.site.name
+        self.__tls = settings.tls
 
         self.__mounts = [
-            Mount("/files/", FILES_DIR),
-            Mount(clash.configs_urlpath, str(clash.configs_store_dir)),
-            Mount("/webhook", webhook.hook_url, is_proxy=True)
+            Mount("/files/", str(FILES_DIR)),
+            Mount(settings.clash.configs_urlpath, str(settings.clash.configs_store_dir)),
+            Mount(
+                location=settings.payments.payment_path,
+                destination=settings.payments.origin,
+                is_proxy=True,
+            )
         ]
 
     @property

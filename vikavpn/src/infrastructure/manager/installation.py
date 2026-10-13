@@ -1,6 +1,6 @@
 from loguru import logger
 
-from .registry import Registry
+from .registry import Registry, InstallTargets
 
 
 def install(registry: Registry, by_names: list[str] | None = None):
@@ -19,3 +19,11 @@ def uninstall(registry: Registry, by_names: list[str] | None = None):
             target.uninstall()
         else:
             logger.warning(f"{name} не установлен")
+
+
+def get_installed(registry: Registry, by_names: list[str] | None = None) -> InstallTargets:
+    return {
+        name: target
+        for name, target in registry.get_install_targets(by_names).items()
+        if target.is_installed
+    }
