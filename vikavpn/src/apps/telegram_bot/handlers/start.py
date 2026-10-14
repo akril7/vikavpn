@@ -1,4 +1,4 @@
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.filters import CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
@@ -67,3 +67,31 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
     user = await get_user(message.from_user.id)
     await show_start(user, message)
+
+
+@router.message(F.text)
+async def msg_fallback(message: Message, state: FSMContext):
+    """Ловит любой текст, который не поймали другие хендлеры.
+
+    Логика:
+    - Если пользователь в FSM-состоянии — не мешаем (пусть вводит данные).
+    - Если пользователь не привязан — показываем auth-меню.
+    - Если привязан — показываем главное меню.
+    """
+    current_state = await state.get_state()
+    if current_state is not None:
+        return
+
+    user = await get_user(message.from_user.id)
+
+    if user is None:
+        await message.answer(
+            render_start_not_authorized(),
+            reply_markup=auth_menu(),
+        )
+        return
+
+    await message.answer(
+        "Главное меню",
+        reply_markup=main_menu(),
+    )

@@ -68,4 +68,6 @@ async def handle_payment(request: web.Request) -> web.Response:
             timeout=app["reload_timeout"],
         )
 
+        logger.debug(payment.label)
+
     return web.Response(status=200)

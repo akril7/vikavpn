@@ -119,7 +119,7 @@
           - "--exclude=__pycache__"
           - "--exclude=*.pyc"
           - "--exclude=*.db"
-          - "--exclude=external"
+          - "--exclude=.external"
           - "--exclude=.git"
       tags: [sync, setup]
 
@@ -174,15 +174,3 @@
         virtualenv: "{{ venv_dir }}"
         state: present
       tags: [venv, setup]
-
-    - name: Run manage.py setup
-      ansible.builtin.command:
-        cmd: "{{ service_python }} {{ install_dir }}/manage.py setup"
-        chdir: "{{ install_dir }}"
-      register: setup_result
-      tags: [setup]
-
-    - name: Show setup output
-      ansible.builtin.debug:
-        var: setup_result.stdout_lines
-      tags: [setup]

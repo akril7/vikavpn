@@ -2,6 +2,7 @@ import hmac
 from json import JSONDecodeError
 
 from aiohttp import web, ContentTypeError
+from loguru import logger
 
 from src.db.connection import Session
 from src.db.repo import UserRepository
@@ -11,12 +12,14 @@ async def handle_auth(request: web.Request) -> web.Response:
     try:
         data = await request.json()
     except (JSONDecodeError, ContentTypeError):
+        logger.debug("invalid json")
         return web.json_response(
             {"ok": False, "msg": "access denied"}, status=200
         )
 
     auth = data.get("auth", "")
     if ":" not in auth:
+        logger.debug("access denied")
         return web.json_response(
             {"ok": False, "msg": "access denied"}, status=200
         )
@@ -30,6 +33,8 @@ async def handle_auth(request: web.Request) -> web.Response:
         user = await repo.get_by_name(username)
 
     if user and hmac.compare_digest(user.password, password) and user.is_active:
+        logger.debug("ok")
         return web.json_response({"ok": True, "id": username}, status=200)
 
+    logger.debug("access denied")
     return web.json_response({"ok": False, "msg": "access denied"}, status=200)

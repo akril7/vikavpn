@@ -1,4 +1,5 @@
 import queue
+import shutil
 import subprocess
 import threading
 from dataclasses import dataclass, field
@@ -10,12 +11,14 @@ from rich.text import Text
 from src.cli.console import console
 
 
-TAIL_LINES = 200
-BUFFER_LINES = 500
+TAIL_LINES = 200          # сколько строк запрашиваем у journalctl при старте
+BUFFER_LINES = 500        # сколько строк держим в памяти
+RESERVED_ROWS = 4         # рамка (2) + заголовок (1) + subtitle (1)
 
 
 @dataclass
 class _LogBuffer:
+    """Кольцевой буфер строк с рендером «хвоста» под высоту терминала."""
     lines: list[str] = field(default_factory=list)
 
     def append(self, line: str) -> None:
@@ -24,18 +27,49 @@ class _LogBuffer:
         if overflow > 0:
             del self.lines[:overflow]
 
+    def _visible_count(self) -> int:
+        """Сколько строк влезает в панель при текущем размере терминала."""
+        term_height = shutil.get_terminal_size(fallback=(80, 24)).lines
+        return max(1, term_height - RESERVED_ROWS)
+
     def render(self, unit: str) -> Panel:
-        body = Text("\n".join(self.lines) if self.lines else "[dim]ожидание логов…[/]")
+        visible = self._visible_count()
+        tail = self.lines[-visible:]
+
+        if tail:
+            body = Text("\n".join(tail))
+        else:
+            body = Text("Р¶РґС‘Рј Р»РѕРіРёвЂ¦", style="dim")
+
         return Panel(
             body,
-            title=f"[bold cyan]Логи {unit}[/]",
-            subtitle="[dim]Ctrl+C — выход[/]",
+            title=f"[bold cyan]Р›РѕРіРё {unit}[/]",
+            subtitle="[dim]Ctrl+C вЂ” РІС‹Р№С‚Рё[/]",
             border_style="cyan",
         )
 
 
+def _terminate(proc: subprocess.Popen) -> None:
+    """Аккуратно гасим journalctl: SIGTERM, потом SIGKILL."""
+    if proc.poll() is not None:
+        return
+    proc.terminate()
+    try:
+        proc.wait(timeout=2)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        try:
+            proc.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            pass
+
+
 def show_logs(unit: str) -> None:
-    """Открывает live-просмотр логов systemd-юнита. Выход — Ctrl+C."""
+    """Live-tail логов systemd-юнита с отображением последних N строк.
+
+    Ctrl+C — выход. Панель всегда показывает актуальный хвост,
+    не «уплывает» вверх и не обрезается, как при рендере всего буфера.
+    """
     cmd = [
         "journalctl",
         "-u", unit,
@@ -52,9 +86,13 @@ def show_logs(unit: str) -> None:
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
+            # Отдельная группа процессов, чтобы Ctrl+C в терминале
+            # не убивал родителя (нас) напрямую, а мы сами решали,
+            # что делать. См. обработку KeyboardInterrupt ниже.
+            start_new_session=True,
         )
     except FileNotFoundError:
-        console.print("[red]journalctl не найден[/]")
+        console.print("[red]journalctl РЅРµ РЅР°Р№РґРµРЅ[/]")
         return
 
     q: "queue.Queue[str | None]" = queue.Queue()
@@ -62,12 +100,13 @@ def show_logs(unit: str) -> None:
     def _reader() -> None:
         assert proc.stdout is not None
         try:
-            for i in proc.stdout:
-                q.put(i.rstrip("\n"))
+            for raw in proc.stdout:
+                q.put(raw.rstrip("\n"))
         finally:
             q.put(None)
 
-    threading.Thread(target=_reader, daemon=True).start()
+    reader = threading.Thread(target=_reader, daemon=True)
+    reader.start()
 
     buffer = _LogBuffer()
 
@@ -87,17 +126,13 @@ def show_logs(unit: str) -> None:
                     continue
 
                 if line is None:
-                    # journalctl завершился — ждём Ctrl+C
                     live.update(buffer.render(unit))
-                    continue
+                    break
 
                 buffer.append(line)
                 live.update(buffer.render(unit))
     except KeyboardInterrupt:
         pass
     finally:
-        proc.terminate()
-        try:
-            proc.wait(timeout=2)
-        except subprocess.TimeoutExpired:
-            proc.kill()
+        _terminate(proc)
+        reader.join(timeout=1)
