@@ -4,7 +4,7 @@ set -euo pipefail
 # --------------------------------- PARAMS -----------------------------------------
 REPO_URL="${REPO_URL:-https://github.com/akril7/vikavpn.git}"
 TARGET="${TARGET:-/opt/vikavpn}"
-BRANCH="${BRANCH:-main}"
+BRANCH="${BRANCH:-master}"
 CONF_DIR="${CONF_DIR:-/etc/vikavpn}"
 VENV_DIR="${VENV_DIR:-$TARGET/.venv}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
