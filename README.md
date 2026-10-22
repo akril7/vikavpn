@@ -9,7 +9,7 @@
 ```bash
 apt-get update -qq
 DEBIAN_FRONTEND=noninteractive apt-get install -y -qq sudo curl
-curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy/hardening.sh | sudo bash
+bash <(curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy/hardening.sh)
 ```
 
 ## install
@@ -17,7 +17,7 @@ curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy/harden
 Установка/обновление приложения в `/opt/vikavpn` (venv, зависимости; конфиг в `/etc/vikavpn`).
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy/install.sh | sudo bash
+bash <(curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy/install.sh)
 ```
 
 ## Push settings
@@ -25,5 +25,5 @@ curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy/instal
 Копирование локального **/etc/vikavpn/settings.env** на удалённый хост в **/etc/vikavpn/settings.env**.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy/push-settings.sh | sudo bash
+bash <(curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy/push-settings.sh)
 ```
