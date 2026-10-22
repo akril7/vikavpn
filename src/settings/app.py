@@ -4,7 +4,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+ENV_PATH = "/etc/vikavpn/settings.env"
+
+load_dotenv(ENV_PATH)
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 FILES_DIR = BASE_DIR / "files"

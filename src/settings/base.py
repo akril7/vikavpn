@@ -1,5 +1,7 @@
 from pydantic_settings import SettingsConfigDict
 
+from src.settings.app import ENV_PATH
+
 
 def make_config(env_prefix: str = "") -> SettingsConfigDict:
     """Единая конфигурация для всех BaseSettings"""
@@ -8,7 +10,7 @@ def make_config(env_prefix: str = "") -> SettingsConfigDict:
 
     return SettingsConfigDict(
         env_prefix=env_prefix,
-        env_file=".env",
+        env_file=ENV_PATH,
         env_file_encoding="utf-8",
         extra="ignore",
         frozen=True,

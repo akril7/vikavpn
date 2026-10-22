@@ -18,7 +18,7 @@ from src.texts.render import (
 )
 from ..states import Renew
 
-from .payment import create_payment_for_renew
+from .payment import start_payment_for_renew
 
 router = Router()
 
@@ -117,7 +117,7 @@ async def cb_renew_days(call: CallbackQuery, state: FSMContext, settings: Settin
         await call.answer()
         return
 
-    await create_payment_for_renew(call, state, settings)
+    await start_payment_for_renew(call, state, settings)
 
 
 @router.callback_query(Renew.target, F.data.startswith("target:"))
@@ -130,4 +130,4 @@ async def cb_renew_target(call: CallbackQuery, state: FSMContext, settings: Sett
 
     await state.update_data(target_id=target_id)
 
-    await create_payment_for_renew(call, state, settings)
+    await start_payment_for_renew(call, state, settings)
