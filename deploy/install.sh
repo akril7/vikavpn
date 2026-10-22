@@ -36,12 +36,12 @@ log "Каталог конфигурации: $CONF_DIR"
 mkdir -p "$CONF_DIR"
 chmod 750 "$CONF_DIR"
 
-if [[ -f "$TARGET/.env.example" && ! -f "$CONF_DIR/.env" ]]; then
-    cp "$TARGET/.env.example" "$CONF_DIR/.env"
+if [[ -f "$TARGET/example.require.env" && ! -f "$CONF_DIR/.env" ]]; then
+    cp "$TARGET/example.require.env" "$CONF_DIR/.env"
     chmod 600 "$CONF_DIR/.env"
-    log "Создан $CONF_DIR/.env из .env.example — отредактируйте его"
+    log "Создан $CONF_DIR/.env из example.require.env — отредактируйте его"
 elif [[ ! -f "$CONF_DIR/.env" ]]; then
-    log "ВНИМАНИЕ: $CONF_DIR/.env отсутствует, а .env.example в репозитории нет"
+    log "ВНИМАНИЕ: $CONF_DIR/.env отсутствует, а example.require.env в репозитории нет"
 fi
 
 # --------------------------------- VENV -------------------------------------------
