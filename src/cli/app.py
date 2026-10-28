@@ -1,3 +1,5 @@
+from loguru import logger
+
 from src.cli.async_runtime import runtime
 from src.db.connection import create_tables
 from src.infrastructure.manager.registry import Registry
@@ -14,7 +16,9 @@ def run() -> None:
     registry = Registry(settings)
     ctx = CliContext(settings=settings, registry=registry)
 
+    logger.debug("Connect to db...")
     runtime.run(create_tables())
+    logger.debug("Connected")
 
     if not is_root():
         ui.warn(
@@ -64,7 +68,6 @@ def _dispatch(key: str, ctx: CliContext) -> None:
         ui.console.print()
     except Exception as exc:  # noqa: BLE001
         ui.err(f"Ошибка: {exc}")
-        from loguru import logger
         logger.exception("Panel action failed")
         from src.cli.widgets import prompts
         prompts.pause()

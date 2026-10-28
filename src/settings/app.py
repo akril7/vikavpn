@@ -12,6 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 FILES_DIR = BASE_DIR / "files"
 
 DEFAULT_INSTALL_DIR = BASE_DIR / ".external"
+DEFAULT_CONFIG_DIR = Path("/etc/vikavpn")
 
 DEBUG = get("DEBUG", "").lower() in ("yes", "true", "1")
 

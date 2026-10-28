@@ -1,13 +1,12 @@
 server {
     listen {{ port }}{% if tls %} ssl{% endif %};
-{% if extra_ports %}
-{% for extra_port in extra_ports %}
+{%- if extra_ports %}
+{%- for extra_port in extra_ports %}
     listen {{ extra_port }}{% if tls %} ssl{% endif %};
-{% endfor %}
-{% endif %}
+{%- endfor %}
+{%- endif %}
 
     server_name {% if tls %}{{ tls.domain }}{% else %}_{% endif %};
-
 {%- if tls %}
     ssl_certificate     {{ tls.cert_path }};
     ssl_certificate_key {{ tls.key_path }};
@@ -21,19 +20,19 @@ server {
     }
 
 {% if mounts %}
-{% for mount in mounts %}
+{%- for mount in mounts %}
     location {{ mount.location }} {
-{% if mount.is_proxy %}
+{%- if mount.is_proxy %}
         proxy_pass {{ mount.destination }};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-{% else %}
+{%- else %}
         alias {{ mount.destination }}/;
         default_type text/plain;
-{% endif %}
+{%- endif %}
     }
 {% endfor %}
-{% endif %}
+{%- endif %}
 }

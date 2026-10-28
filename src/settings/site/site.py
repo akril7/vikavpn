@@ -3,7 +3,7 @@ from pathlib import Path
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-from src.settings.app import DEFAULT_INSTALL_DIR
+from src.settings.app import DEFAULT_CONFIG_DIR
 from src.settings.base import make_config
 
 
@@ -20,7 +20,7 @@ class SiteSettings(BaseSettings):
     extra_ports: list[int] = Field(default_factory=lambda: [443])
 
     # root папка сайта
-    root_dir: Path = Field(default_factory=lambda: DEFAULT_INSTALL_DIR / "site")
+    root_dir: Path = Field(default_factory=lambda: DEFAULT_CONFIG_DIR / "site")
 
     # имя файла для конфига сайта
     name: str = "vikavpn-site"
