@@ -8,6 +8,7 @@ from src.infrastructure.services.endpoints.hysteria import HysteriaInstaller, Hy
 from src.infrastructure.services.endpoints.mita import MitaInstaller, MitaConfigurator, MitaController
 from src.infrastructure.services.endpoints.mtproxyl import MTProxyLInstaller, MTProxyLConfigurator, MTProxyLController
 from src.infrastructure.services.endpoints.trusttunnel import TrustTunnelInstaller, TrustTunnelConfigurator
+from src.infrastructure.services.endpoints.xray.installer import XrayInstaller
 from src.infrastructure.services.site import SiteInstaller
 from src.infrastructure.systemd import SystemdUnitController
 from src.settings import Settings
@@ -46,6 +47,7 @@ def _build_installers(settings: Settings):
         "hysteria": HysteriaInstaller(settings),
         "trusttunnel": TrustTunnelInstaller(settings.trusttunnel),
         "mtproxyl": MTProxyLInstaller(settings.mtproxyl, settings.tls),
+        "xray": XrayInstaller(),
         "site": SiteInstaller(settings),
         "reloader": AppInstaller("reloader"),
         "payments": AppInstaller("payments"),

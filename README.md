@@ -25,5 +25,5 @@ bash <(curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy
 Копирование локального **/etc/vikavpn/settings.env** на удалённый хост в **/etc/vikavpn/settings.env**.
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy/push-settings.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy/push-config.sh)
 ```

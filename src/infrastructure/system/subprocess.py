@@ -26,8 +26,8 @@ def run_without_out(args: list[str], **kwargs) -> subprocess.CompletedProcess:
     return subprocess.run(args, stdout=subprocess.DEVNULL, **kwargs)
 
 
-def run_with_check(args: list[str]) -> subprocess.CompletedProcess:
-    return run_without_out(args, check=True)
+def run_with_check(args: list[str], **kwargs) -> subprocess.CompletedProcess:
+    return run_without_out(args, check=True, **kwargs)
 
 
 def run_and_check_status(args: list[str]) -> bool:
