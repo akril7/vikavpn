@@ -18,7 +18,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory={{ work_dir }}
-ExecStart={{ executable }} -m src.apps.{{ appname }}
+ExecStart={{ executable }} -m src.infrastructure.apps.{{ appname }}
 Restart=always
 RestartSec=5
 
