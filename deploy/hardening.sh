@@ -6,7 +6,7 @@ ROOT_PASSWORD="${ROOT_PASSWORD:-}"
 USER_NAME="${USER_NAME:-}"
 USER_PASSWORD="${USER_PASSWORD:-}"
 SSH_PORT="${SSH_PORT:-35790}"
-PACKAGES=(sudo curl tree ca-certificates rsync python3 python3-venv python3-pip nginx dpkg git)
+PACKAGES=(sudo curl tree ca-certificates python3 python3-venv python3-pip nginx dpkg git)
 SSH_AUTHORIZED_KEYS=()
 if [[ -n "${SSH_AUTHORIZED_KEYS_ENV:-}" ]]; then
     IFS=';' read -r -a SSH_AUTHORIZED_KEYS <<< "$SSH_AUTHORIZED_KEYS_ENV"

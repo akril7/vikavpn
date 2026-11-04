@@ -66,6 +66,6 @@ class MTProxyLInstaller(Installer):
     def _uninstall(self):
         logger.debug("Run mtproxyl uninstall command")
         master, proc = run_pty_proc(["mtproxyl", "uninstall"])
-        os.write(master, "yes\n\n".encode())
+        os.write(master, "yes\n\n\n".encode())
         proc.wait()
         os.close(master)
