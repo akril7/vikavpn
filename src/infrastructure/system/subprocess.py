@@ -78,8 +78,6 @@ def run_pty_proc(command: list[str]) -> tuple[int, subprocess.Popen]:
     proc = subprocess.Popen(
         command,
         stdin=slave,
-        stdout=slave,
-        stderr=slave,
         close_fds=True,
         preexec_fn=os.setsid
     )
