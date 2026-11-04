@@ -17,7 +17,7 @@ class SiteSettings(BaseSettings):
     port: int = 7071
 
     # Дополнительные порты для сайта
-    extra_ports: list[int] = Field(default_factory=lambda: [443])
+    extra_ports: list[int] = Field(default_factory=lambda: [])
 
     # root папка сайта
     root_dir: Path = Field(default_factory=lambda: DEFAULT_CONFIG_DIR / "site")

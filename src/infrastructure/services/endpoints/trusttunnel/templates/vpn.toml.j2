@@ -9,8 +9,13 @@ client_listener_timeout_secs = 600
 connection_establishment_timeout_secs = 30
 tcp_connections_timeout_secs = 604800
 udp_connections_timeout_secs = 300
-auth_failure_status_code = 407
-
+auth_failure_status_code = 403
+{% if socks5_address is defined and socks5_address is not none %}
+[forward_protocol]
+[forward_protocol.socks5]
+address = "{{ socks5_address }}"
+extended_auth = false
+{% endif %}
 [listen_protocols]
 
 [listen_protocols.http1]

@@ -6,10 +6,10 @@ from src.infrastructure.app import AppInstaller, AppController
 from src.infrastructure.services.clash import ClashConfigurator
 from src.infrastructure.services.endpoints.hysteria import HysteriaInstaller, HysteriaController
 from src.infrastructure.services.endpoints.mita import MitaInstaller, MitaConfigurator, MitaController
-from src.infrastructure.services.endpoints.mtproxyl import MTProxyLInstaller, MTProxyLConfigurator, MTProxyLController
+from src.infrastructure.services.endpoints.mtproxyl import MTProxyLInstaller, MTProxyLConfigurator
 from src.infrastructure.services.endpoints.trusttunnel import TrustTunnelInstaller, TrustTunnelConfigurator
-from src.infrastructure.services.endpoints.xray.installer import XrayInstaller
 from src.infrastructure.services.site import SiteInstaller
+from src.infrastructure.services.trustclient.installer import TrustClientInstaller
 from src.infrastructure.systemd import SystemdUnitController
 from src.settings import Settings
 
@@ -47,8 +47,8 @@ def _build_installers(settings: Settings):
         "hysteria": HysteriaInstaller(settings),
         "trusttunnel": TrustTunnelInstaller(settings.trusttunnel),
         "mtproxyl": MTProxyLInstaller(settings.mtproxyl, settings.tls),
-        "xray": XrayInstaller(),
         "site": SiteInstaller(settings),
+        "trustclient": TrustClientInstaller(settings.trustclient),
         "reloader": AppInstaller("reloader"),
         "payments": AppInstaller("payments"),
         "tgbot": AppInstaller("telegram_bot"),
@@ -57,10 +57,13 @@ def _build_installers(settings: Settings):
 
 @lru_cache(maxsize=1)
 def _build_configurators(settings: Settings):
+    controllers = _build_controllers(settings)
+
     return {
-        "mita": MitaConfigurator(settings.mita),
-        "trusttunnel": TrustTunnelConfigurator(settings.trusttunnel, settings.tls),
-        "mtproxyl": MTProxyLConfigurator(settings.mtproxyl),
+        "mita": MitaConfigurator(settings.mita, controller=controllers["mita"]),
+        "trusttunnel": TrustTunnelConfigurator(settings.trusttunnel, settings.tls,
+                                               controller=controllers["trusttunnel"]),
+        "mtproxyl": MTProxyLConfigurator(settings.mtproxyl, controller=controllers["mtproxyl"]),
         "clash": ClashConfigurator(settings.clash, settings.tls, settings.site,
                                    settings.mita, settings.hysteria, settings.trusttunnel),
     }
@@ -71,8 +74,9 @@ def _build_controllers(settings: Settings):
     return {
         "mita": MitaController(),
         "hysteria": HysteriaController(settings.hysteria),
-        "mtproxyl": MTProxyLController(settings.mtproxyl),
+        "mtproxyl": SystemdUnitController(settings.mtproxyl.service_name),
         "trusttunnel": SystemdUnitController(settings.trusttunnel.service_name),
+        "trustclient": SystemdUnitController(settings.trustclient.service_name),
         "reloader": AppController("reloader"),
         "payments": AppController("payments"),
         "tgbot": AppController("telegram_bot"),

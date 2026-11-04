@@ -26,7 +26,6 @@ class TrustTunnelConfig:
 def render_config(
         domain: str,
         user: User,
-        ads_rule_url: str | None = None,
         mita_config: MitaConfig | None = None,
         hysteria_config: HysteriaConfig | None = None,
         trusttunnel_config: TrustTunnelConfig | None = None) -> str:
@@ -34,8 +33,7 @@ def render_config(
     return template.render(
         domain=domain,
         user=user,
-        ads_rule_url=ads_rule_url,
-        mita=mita_config,
-        hysteria=hysteria_config,
-        trusttunnel=trusttunnel_config
+        mita=mita_config or False,
+        hysteria=hysteria_config or False,
+        trusttunnel=trusttunnel_config or False
     )

@@ -1,7 +1,6 @@
 {%- set mieru_enabled = mita is defined and mita -%}
 {%- set hysteria_enabled = hysteria is defined and hysteria -%}
 {%- set trusttunnel_enabled = trusttunnel is defined and trusttunnel -%}
-{%- set ads_rule_enabled = ads_rule_url is defined and ads_rule_url -%}
 {%- set hysteria_name = "🎭 Для-тиктока" if user.ios_user else "📶 Резерв быстрый" -%}
 tcp-concurrent: true
 keep-alive-interval: 60
@@ -91,7 +90,9 @@ proxy-groups:
   - name: GLOBAL
     type: fallback
     proxies:
+{%- if hysteria_enabled %}
     - "{{ hysteria_name }}"
+{%- endif %}
     - PROXY
     interval: 0
     lazy: false
@@ -112,19 +113,9 @@ dns:
     - https://77.88.8.8/dns-query
     - https://9.9.9.9/dns-query
 
-{% if ads_rule_enabled -%}
-rule-providers:
-  ads:
-    type: http
-    behavior: classical
-    url: "{{ ads_rule_url }}"
-    path: ./ruleset/ads-rules.yaml
-    interval: 172800
-{%- endif %}
-
 rules:
 {%- if user.ios_user %}
-  - GEOSITE,tiktok,{{ hysteria_name }}
+  - GEOSITE,tiktok,{% if hysteria_enabled %}{{ hysteria_name }}{% else %}PROXY{% endif %}
 {%- endif %}
 
   - GEOSITE,pornhub,PROXY
@@ -151,8 +142,68 @@ rules:
   - DOMAIN-KEYWORD,primegamesstudio.com,PROXY
 
   - GEOSITE,category-ads-all,REJECT
-{%- if ads_rule_enabled %}
-  - RULE-SET,ads,REJECT
-{%- endif %}
+  - DOMAIN-SUFFIX,betweendigital.com
+  - DOMAIN-SUFFIX,al-adtech.com,REJECT
+  - DOMAIN-SUFFIX,acint.net,REJECT
+  - DOMAIN-SUFFIX,nominaltechno.com,REJECT
+  - DOMAIN-SUFFIX,buzzoola.com,REJECT
+  - DOMAIN-SUFFIX,programmatica.com,REJECT
+  - DOMAIN-SUFFIX,hybrid.a,REJECT
+  - DOMAIN-SUFFIX,gonet-ads.com,REJECT
+  - DOMAIN-SUFFIX,giraff.io,REJECT
+  - DOMAIN-SUFFIX,adiam.tech,REJECT
+  - DOMAIN-SUFFIX,suprion.ru,REJECT
+  - DOMAIN-SUFFIX,ohmy.bid,REJECT
+  - DOMAIN-SUFFIX,adhigh.net,REJECT
+  - DOMAIN-SUFFIX,ussp.io,REJECT
+  - DOMAIN-SUFFIX,bidster.net,REJECT
+  - DOMAIN-SUFFIX,gonet-ads.com,REJECT
+  - DOMAIN-SUFFIX,adtec.ru,REJECT
+  - DOMAIN-SUFFIX,adriver.ru,REJECT
+  - DOMAIN-SUFFIX,video-mech.ru,REJECT
+  - DOMAIN-SUFFIX,bidderstack.com,REJECT
+  - DOMAIN-SUFFIX,nashindex.ru,REJECT
+  - DOMAIN-SUFFIX,utraff.com,REJECT
+  - DOMAIN-SUFFIX,stbid.ru,REJECT
+  - DOMAIN-SUFFIX,sm.rtb.mts.ru,REJECT
+  - DOMAIN-SUFFIX,bringads.ru,REJECT
+  - DOMAIN-SUFFIX,otclick-adv.ru,REJECT
+  - DOMAIN-SUFFIX,ussp.io,REJECT
+  - DOMAIN-SUFFIX,otm-r.com,REJECT
+  - DOMAIN-SUFFIX,adspector.io,REJECT
+  - DOMAIN-SUFFIX,silvermob.com,REJECT
+  - DOMAIN-SUFFIX,aidata.io,REJECT
+  - DOMAIN-SUFFIX,com.ru,REJECT
+  - DOMAIN-SUFFIX,bumlam.com,REJECT
+  - DOMAIN-SUFFIX,digitaltarget.ru,REJECT
+  - DOMAIN-SUFFIX,uuidksinc.net,REJECT
+  - DOMAIN-SUFFIX,tds.bid,REJECT
+  - DOMAIN-SUFFIX,alfasense.com,REJECT
+  - DOMAIN-SUFFIX,moe.video,REJECT
+  - DOMAIN-SUFFIX,videoroll.net,REJECT
+  - DOMAIN-SUFFIX,avr.i-trailer.ru,REJECT
+  - DOMAIN-SUFFIX,skcrtxr.com,REJECT
+  - DOMAIN-SUFFIX,upravel.com,REJECT
+  - DOMAIN-SUFFIX,sttsmntz.ru,REJECT
+  - DOMAIN-SUFFIX,snsv.ru,REJECT
+  - DOMAIN-SUFFIX,atddmn.com,REJECT
+  - DOMAIN-SUFFIX,franecki.net,REJECT
+  - DOMAIN-SUFFIX,dfn-network.pro,REJECT
+  - DOMAIN-SUFFIX,nogravity4.click,REJECT
+  - DOMAIN-SUFFIX,ufouxbwn.com,REJECT
+  - DOMAIN-SUFFIX,alloviewroll.com,REJECT
+  - DOMAIN-SUFFIX,adstag0102.xyz,REJECT
+  - DOMAIN-SUFFIX,trk.mail.ru,REJECT
+  - DOMAIN-SUFFIX,adsmoloco.com,REJECT
+  - DOMAIN-SUFFIX,moloco.com,REJECT
+  - DOMAIN-SUFFIX,applovin.com,REJECT
+  - DOMAIN-SUFFIX,doubleclick.net,REJECT
+  - DOMAIN-SUFFIX,unityads.unity3d.com,REJECT
+  - DOMAIN-SUFFIX,fingerhi.net,REJECT
+  - DOMAIN-SUFFIX,appsflyer.com,REJECT
+  - DOMAIN-SUFFIX,applovin.com,REJECT
+  - DOMAIN-SUFFIX,aj2635.bid,REJECT
+  - DOMAIN-SUFFIX,adriver.ru,REJECT
+  - DOMAIN-SUFFIX,adfox.ru,REJECT
 
   - MATCH,DIRECT

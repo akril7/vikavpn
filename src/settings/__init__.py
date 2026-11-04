@@ -7,9 +7,10 @@ from src.settings.apps.telegram import TelegramBotSettings
 from src.settings.apps.reloader import ReloaderSettings
 from src.settings.apps.payments import PaymentsSettings
 from src.settings.apps.yoomoney import YoomoneySettings
-from src.settings.site import SiteSettings
+from src.settings.site.site import SiteSettings
 from src.settings.site.nginx import NginxSettings
 from src.settings.tls import TLSSettings
+from src.settings.trustclient import TrustClientSettings
 
 
 class Settings:
@@ -24,13 +25,14 @@ class Settings:
         *,
         tls_: TLSSettings | None = None,
         clash_: ClashSettings | None = None,
-        site_: SiteSettings | None = None,
+        site: SiteSettings | None = None,
         nginx: NginxSettings | None = None,
         mita: MitaSettings | None = None,
         trusttunnel: TrustTunnelSettings | None = None,
         hysteria: HysteriaSettings | None = None,
         mtproxyl: MTProxyLSettings | None = None,
         yoomoney_: YoomoneySettings | None = None,
+        trustclient_: TrustClientSettings | None = None,
         telegram_bot: TelegramBotSettings | None = None,
         reloader: ReloaderSettings | None = None,
         payments: PaymentsSettings | None = None,
@@ -39,8 +41,9 @@ class Settings:
         self.clash = clash_ if clash_ is not None else ClashSettings()
         self.yoomoney = yoomoney_ if yoomoney_ is not None else YoomoneySettings()
 
-        self.site = site_ if site_ is not None else SiteSettings()
+        self.site = site if site is not None else SiteSettings()
         self.nginx = nginx if nginx is not None else NginxSettings()
+        self.trustclient = trustclient_ if trustclient_ is not None else TrustClientSettings()
 
         self.mita = mita if mita is not None else MitaSettings()
         self.trusttunnel = trusttunnel if trusttunnel is not None else TrustTunnelSettings()
@@ -63,6 +66,7 @@ __all__ = [
     "HysteriaSettings",
     "MTProxyLSettings",
     "YoomoneySettings",
+    "TrustClientSettings",
     "TelegramBotSettings",
     "ReloaderSettings",
     "PaymentsSettings",

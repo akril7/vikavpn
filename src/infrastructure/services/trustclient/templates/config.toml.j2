@@ -1,0 +1,25 @@
+loglevel = "info"
+vpn_mode = "general"
+killswitch_enabled = true
+killswitch_allow_ports = []
+post_quantum_group_enabled = true
+
+[endpoint]
+hostname = "{{ hostname }}"
+addresses = ["{{ hostname }}:{{ port }}"]
+custom_sni = ""
+has_ipv6 = false
+username = "{{ username }}"
+password = "{{ password }}"
+client_random = ""
+skip_verification = true
+certificate = ""
+upstream_protocol = "{{ protocol }}"
+anti_dpi = true
+
+dns_upstreams = []
+
+[listener]
+
+[listener.socks]
+address = "{{ socks_address }}"

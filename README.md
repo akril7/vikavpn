@@ -4,7 +4,7 @@
 
 ## Hardening
 
-Базовая защита сервера: root/user, SSH-ключи, порт, sshd_config, sysctl.
+Базовая защита сервера: root/user, SSH-ключи, порт, sshd_config, sysctl + установка зависимостей
 
 ```bash
 apt-get update -qq
@@ -18,12 +18,4 @@ bash <(curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy/install.sh)
-```
-
-## Push settings
-
-Копирование локального **/etc/vikavpn/settings.env** на удалённый хост в **/etc/vikavpn/settings.env**.
-
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/akril7/vikavpn/master/deploy/push-config.sh)
 ```

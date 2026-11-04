@@ -1,5 +1,3 @@
-import secrets
-
 from src.settings import TLSSettings
 from src.db.models import Users
 from src.infrastructure import get_env
@@ -17,19 +15,20 @@ def render_hosts(tls: TLSSettings, allowed_sni: list[str]) -> str:
     )
 
 
-def render_settings(port: int, metrics_port: int | None = None) -> str:
+def render_settings(port: int, socks5_address: str | None = None, metrics_port: int | None = None) -> str:
     template = env.get_template("vpn.toml.j2")
     return template.render(
         port=port,
+        socks5_address=socks5_address,
         metrics_port=metrics_port
     )
 
 
-def render_users(users: Users) -> str:
+def render_users(users: Users, default_user: str) -> str:
     template = env.get_template("credentials.toml.j2")
     return template.render(
         users=users,
-        default_user=secrets.token_hex(4)
+        default_user=default_user
     )
 
 

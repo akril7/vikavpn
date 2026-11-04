@@ -35,7 +35,6 @@ class ClashConfigurator(Configurator):
             config = render_config(
                 user=user,
                 domain=self.__domain,
-                ads_rule_url=self.__ads_rule_url,
                 mita_config=self.__mita_cfg,
                 hysteria_config=self.__hysteria_cfg,
                 trusttunnel_config=self.__trusttunnel_cfg

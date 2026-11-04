@@ -2,8 +2,7 @@ from pathlib import Path
 
 from src.db.models import Users
 from src.core.interfaces.configurator import Configurator
-from src.core.interfaces import ConfiguratorError
-from src.infrastructure.system.systemctl import SystemdUnit
+from src.core.interfaces import Controller
 from src.infrastructure.system.subprocess import run_with_check
 from src.settings import MitaSettings
 from src.core.users.filters import filter_vpn_users
@@ -14,8 +13,8 @@ CONFIG_PATH = Path("/tmp/mita.config.json")
 
 
 class MitaConfigurator(Configurator):
-    def __init__(self, config: MitaSettings):
-        self.__service = SystemdUnit(config.service_name)
+    def __init__(self, config: MitaSettings, controller: Controller):
+        self.__controller = controller
         self.__portbinds = [PortBindingsItem(
             port_range=config.port_range,
             protocol=config.protocol
@@ -31,13 +30,6 @@ class MitaConfigurator(Configurator):
         CONFIG_PATH.write_text(config)
 
         run_with_check(["mita", "apply", "config", str(CONFIG_PATH)])
-        self.__start_mita_service()
-        run_with_check(["mita", "reload"])
+        self.__controller.reload()
 
         CONFIG_PATH.unlink(missing_ok=True)
-
-    def __start_mita_service(self):
-        self.__service.start()
-
-        if not self.__service.status:
-            raise ConfiguratorError("Mita service not started")
