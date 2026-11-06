@@ -1,5 +1,5 @@
-from src.core.interfaces import ControllerError
-from src.infrastructure.manager import control
+from src.application.ports.services import ControllerError
+from src.application.manager import control
 from src.infrastructure.system.subprocess import is_root
 from src.cli.console import console, err, ok, warn
 

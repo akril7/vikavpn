@@ -3,7 +3,7 @@ from rich.panel import Panel
 from rich.text import Text
 
 from src.infrastructure.system.subprocess import is_root
-from src.settings.app import DEBUG, TIMEZONE_HOURS_DELTA
+from src.configuration.app import DEBUG, TIMEZONE_HOURS_DELTA
 
 
 console = Console()

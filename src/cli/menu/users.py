@@ -17,7 +17,6 @@ MENU_ITEMS: list[tuple[str, str]] = [
     ("search",        "Поиск по имени / UUID"),
     ("card",          "Открыть карточку…"),
     ("create",        "Создать нового"),
-    ("import",        "Импорт из TOML"),
     ("back",          "Назад"),
 ]
 
@@ -37,27 +36,25 @@ def run(ctx: CliContext) -> None:
             return
 
         if choice.startswith("list_"):
-            _show_list(ctx, choice.removeprefix("list_"))
+            _show_list(choice.removeprefix("list_"))
         elif choice == "search":
-            _do_search(ctx)
+            _do_search()
         elif choice == "card":
             _open_card_flow(ctx)
         elif choice == "create":
             _do_create(ctx)
-        elif choice == "import":
-            _do_import(ctx)
 
 
 # ---------------------------------------------------------------- list
 
-def _show_list(ctx: CliContext, kind: str) -> None:
+def _show_list(kind: str) -> None:
     with console.status("[cyan]Загружаю пользователей…[/]"):
         users = actions.list_users(filter_kind=kind)
     if not users:
         info("Пусто")
         prompts.pause()
         return
-    _render_users_pager(users, title=_list_title(kind))
+    _render_users_pager(users)
 
 
 def _list_title(kind: str) -> str:
@@ -71,7 +68,7 @@ def _list_title(kind: str) -> str:
     }.get(kind, "Пользователи")
 
 
-def _render_users_pager(users, title: str) -> None:
+def _render_users_pager(users) -> None:
     table = users_table(users)
     with console.pager(styles=True, links=True):
         console.print(table)
@@ -83,7 +80,7 @@ def _render_users_pager(users, title: str) -> None:
 
 # ---------------------------------------------------------------- search
 
-def _do_search(ctx: CliContext) -> None:
+def _do_search() -> None:
     query = prompts.text("Введите имя или UUID (частично)")
     if not query:
         return
@@ -93,7 +90,7 @@ def _do_search(ctx: CliContext) -> None:
         info("Ничего не найдено")
         prompts.pause()
         return
-    _render_users_pager(users, title=f"Поиск: {query}")
+    _render_users_pager(users)
 
 
 # ---------------------------------------------------------------- card
@@ -249,39 +246,6 @@ def _do_create(ctx: CliContext) -> None:
     if ok_:
         ok(msg)
         cfg_actions.trigger_reload(ctx.settings)
-    else:
-        err(msg)
-
-    console.print()
-    prompts.pause()
-
-
-# ---------------------------------------------------------------- import
-
-def _do_import(ctx: CliContext) -> None:
-    console.print(
-        "[dim]Путь к TOML-файлу. Например: users.toml или /root/users.toml[/]"
-    )
-    path = prompts.text("Путь к файлу")
-    if not path:
-        return
-
-    console.print()
-    with console.status("[cyan]Импортирую…[/]"):
-        ok_, msg = actions.import_users(path)
-
-    if ok_:
-        ok(msg)
-        cfg_actions.trigger_reload(ctx.settings)
-
-        console.print()
-        apply_now = prompts.confirm(
-            "Применить конфигурацию сейчас?", default=True,
-        )
-        if apply_now:
-            with console.status("[cyan]Применяю конфигурацию…[/]"):
-                from src.cli.actions import configure as cfg_actions
-                cfg_actions.apply(ctx.registry)
     else:
         err(msg)
 

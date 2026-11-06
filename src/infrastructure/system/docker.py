@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 from loguru import logger
-from src.core.utils.file import download_file
+from src.infrastructure.utils.file import download_file
 
 from .subprocess import check_result, run_with_check, deb_is_installed, run_without_out, check_root
 

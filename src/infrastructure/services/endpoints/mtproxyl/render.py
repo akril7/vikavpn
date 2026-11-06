@@ -1,5 +1,5 @@
-from src.db.models import Users
-from src.infrastructure import get_env
+from src.domain.models import Users
+from src.infrastructure.templating import get_env
 
 env = get_env(__file__)
 

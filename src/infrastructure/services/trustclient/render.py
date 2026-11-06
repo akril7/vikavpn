@@ -1,4 +1,4 @@
-from src.infrastructure import get_env
+from src.infrastructure.templating import get_env
 
 env = get_env(__file__)
 

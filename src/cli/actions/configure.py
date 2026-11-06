@@ -1,22 +1,22 @@
 from loguru import logger
 
-from src.cli.async_runtime import runtime
-from src.core.interfaces import ServiceError
-from src.core.lifecycle.notify import notify_reload
-from src.infrastructure.manager import configure as configure_manager
-from src.infrastructure.manager import control
-from src.infrastructure.manager.registry import Registry
+from src.application.ports.services import ServiceError
+from src.application.manager import control
+from src.bootstrap.composition.loaders import apply_active_users
+from src.bootstrap.registry import Registry
+from src.infrastructure.http.notify import notify_reload
 from src.infrastructure.system.subprocess import is_root
+from src.cli.async_runtime import runtime
 from src.cli.console import console, err, ok, warn
 from src.cli.utils.editor import edit_env
-from src.settings import Settings
+from src.configuration import Settings
 
 
 def apply(registry: Registry, names: list[str] | None = None) -> bool:
     """Применить конфигурацию (все или выбранные)."""
     try:
         with console.status("[cyan]Применяю конфигурацию…[/]"):
-            runtime.run(configure_manager.apply_active_users(registry, names))
+            runtime.run(apply_active_users(registry, names))
         ok("Конфигурация применена")
         return True
     except ServiceError as exc:

@@ -2,8 +2,9 @@ import sys
 
 from jinja2 import Environment
 
+from src.application.ports.services.callables import IsInstallCallback
 from src.infrastructure.systemd import SystemdUnitInstaller, SystemdUnitController
-from src.settings.app import BASE_DIR
+from src.configuration.app import BASE_DIR
 
 SERVICE_PREFIX = "vikavpn-"
 
@@ -18,7 +19,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory={{ work_dir }}
-ExecStart={{ executable }} -m src.infrastructure.apps.{{ appname }}
+ExecStart={{ executable }} -m src.infrastructure.services.{{ appname }}
 Restart=always
 RestartSec=5
 
@@ -59,5 +60,6 @@ class AppInstaller(SystemdUnitInstaller):
 
 
 class AppController(SystemdUnitController):
-    def __init__(self, appname: str):
-        super().__init__(service_name=format_service_name(appname))
+    def __init__(self, appname: str, is_install_callback: IsInstallCallback):
+        super().__init__(service_name=format_service_name(appname),
+                         is_install_callback=is_install_callback)

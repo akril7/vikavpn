@@ -1,12 +1,12 @@
 from loguru import logger
 
-from src.core.interfaces import Installer
-from src.settings import Settings
+from src.application.services import BaseInstaller
+from src.configuration import Settings
 from .auth.installer import HysteriaAuthInstaller
 from .endpoint.installer import HysteriaEndpointInstaller
 
 
-class HysteriaInstaller(Installer):
+class HysteriaInstaller(BaseInstaller):
     def __init__(self, settings: Settings):
         self.__endpoint = HysteriaEndpointInstaller(settings.hysteria,
                                                     settings.tls,

@@ -3,17 +3,17 @@ from pathlib import Path
 
 from loguru import logger
 
-from src.core.utils.file import download_file
-from src.core.interfaces import Installer
+from src.infrastructure.utils.file import download_file
+from src.application.services import BaseInstaller
 from src.infrastructure.system.subprocess import deb_is_installed, check_root, install_deb, add_user_to_group, \
     uninstall_deb
 from src.infrastructure.system.systemctl import SystemdUnit
-from src.settings import MitaSettings
+from src.configuration import MitaSettings
 
 DEB_STORE_PATH = Path("/tmp/mita.deb")
 
 
-class MitaInstaller(Installer):
+class MitaInstaller(BaseInstaller):
     def __init__(self, config: MitaSettings):
         self.__package_download_link = config.package_download_link
         self.__service = SystemdUnit(config.service_name)

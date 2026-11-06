@@ -4,10 +4,10 @@ from urllib.parse import urlparse
 
 from loguru import logger
 
-from src.settings.endpoints.trusttunnel import TrustTunnelSettings
+from src.configuration.endpoints.trusttunnel import TrustTunnelSettings
 from src.infrastructure.systemd import SystemdUnitInstaller
 from src.infrastructure.system.subprocess import check_root
-from src.core.utils.file import download_file
+from src.infrastructure.utils.file import download_file
 
 from .render import render_service
 

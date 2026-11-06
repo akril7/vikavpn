@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from src.settings.endpoints.mita import MitaProtocol
-from src.db.models import User
-from src.infrastructure import get_env
+from src.configuration.endpoints.mita import MitaProtocol
+from src.domain.models import User
+from src.infrastructure.templating import get_env
 
 env = get_env(__file__)
 

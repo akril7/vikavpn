@@ -4,10 +4,10 @@ from urllib.parse import urlparse
 
 from loguru import logger
 
-from src.core.utils.file import download_file, unpack_clean
+from src.infrastructure.utils.file import download_file, unpack_clean
 from src.infrastructure.services.trustclient.render import render_service, render_config
 from src.infrastructure.systemd import SystemdUnitInstaller
-from src.settings.trustclient import TrustClientSettings
+from src.configuration.other.trustclient import TrustClientSettings
 
 
 class TrustClientInstaller(SystemdUnitInstaller):

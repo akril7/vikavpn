@@ -15,9 +15,9 @@ client_random = ""
 skip_verification = true
 certificate = ""
 upstream_protocol = "{{ protocol }}"
-anti_dpi = true
+anti_dpi = false
 
-dns_upstreams = []
+dns_upstreams = ["https://dns.yandex.net/dns-query", "tls://common.dot.dns.yandex.net", "https://dns.quad9.net/dns-query", "https://dns.google/dns-query"]
 
 [listener]
 

@@ -2,9 +2,9 @@ import shutil
 
 from loguru import logger
 
-from src.core.interfaces import Installer
-from src.settings import Settings
-from src.settings.app import FILES_DIR
+from src.application.services import BaseInstaller
+from src.configuration import Settings
+from src.configuration.app import FILES_DIR
 
 from src.infrastructure.system.subprocess import deb_is_installed
 from src.infrastructure.system.systemctl import SystemdUnit
@@ -12,7 +12,7 @@ from src.infrastructure.system.systemctl import SystemdUnit
 from .render import render_index_html, render_nginx_config, Mount
 
 
-class SiteInstaller(Installer):
+class SiteInstaller(BaseInstaller):
     def __init__(self, settings: Settings):
         self.__title = settings.site.title
         self.__port = settings.site.port

@@ -10,6 +10,7 @@ ExecStart={{ work_dir }}/trusttunnel_client -c config.toml
 Restart=on-failure
 RestartSec=3
 ExecReload=/bin/kill -HUP $MAINPID
+LimitNOFILE=65536
 
 [Install]
 WantedBy=multi-user.target

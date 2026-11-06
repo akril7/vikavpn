@@ -1,5 +1,5 @@
-from src.settings import Settings
-from src.infrastructure.manager.registry import Registry
+from src.configuration import Settings
+from src.bootstrap.registry import Registry
 from src.cli.actions.components import setup
 
 

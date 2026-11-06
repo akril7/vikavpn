@@ -1,12 +1,10 @@
-from src.core.url_build.file import build_clash_ads_rules_url, build_origin
-from src.settings import SiteSettings
-from src.settings import ClashSettings
-from src.settings import HysteriaSettings
-from src.settings import MitaSettings
-from src.settings import TLSSettings
-from src.settings.endpoints.trusttunnel import TrustTunnelSettings
-from src.db.models import Users
-from src.core.interfaces.configurator import Configurator
+from src.configuration import ClashSettings
+from src.configuration import HysteriaSettings
+from src.configuration import MitaSettings
+from src.configuration import TLSSettings
+from src.configuration.endpoints.trusttunnel import TrustTunnelSettings
+from src.domain.models import Users
+from src.application.ports.services import Configurator
 from src.infrastructure.services.clash.render import MitaConfig, HysteriaConfig, TrustTunnelConfig, \
     render_config
 
@@ -15,13 +13,11 @@ class ClashConfigurator(Configurator):
     def __init__(self,
                  clash: ClashSettings,
                  tls: TLSSettings,
-                 site: SiteSettings,
                  mita: MitaSettings,
                  hysteria: HysteriaSettings,
                  trusttunnel: TrustTunnelSettings):
         self.__config_dir = clash.configs_store_dir
         self.__domain = tls.domain
-        self.__ads_rule_url = build_clash_ads_rules_url(build_origin(tls.domain, site.port))
 
         self.__hysteria_cfg = HysteriaConfig(port=hysteria.port)
         self.__trusttunnel_cfg = TrustTunnelConfig(port=trusttunnel.port)

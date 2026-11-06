@@ -1,0 +1,19 @@
+from datetime import timedelta, datetime, UTC
+
+from src.domain.utils.dt import utcnow
+from src.domain.enums import Tariff
+from src.domain.models import User
+
+
+def extend(user: User, tariff: Tariff, days: int):
+    """ Продлить подписку """
+    now = utcnow()
+    base = user.sub_expires_at if user.sub_expires_at > now else now
+    user.sub_expires_at = base + timedelta(days=days)
+    user.proxy_user = True
+    user.vpn_user = tariff == Tariff.FULL
+
+
+def set_expire(user: User, until: str):
+    """Установить срок окончания подписки."""
+    user.sub_expires_at = datetime.strptime(until, "%d.%m.%Y %H:%M").replace(tzinfo=UTC)

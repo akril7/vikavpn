@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from src.settings import TLSSettings
-from src.infrastructure import get_env
+from src.configuration import TLSSettings
+from src.infrastructure.templating import get_env
 
 env = get_env(__file__)
 

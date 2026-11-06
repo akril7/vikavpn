@@ -1,5 +1,5 @@
 from src.infrastructure.app import AppInstaller
-from src.settings import HysteriaSettings
+from src.configuration import HysteriaSettings
 
 
 class HysteriaAuthInstaller(AppInstaller):

@@ -1,12 +1,14 @@
+from abc import ABC
+
 from loguru import logger
 
-from src.db.models import Users
-from src.core.interfaces import Installer, Controller, Configurator
+from src.application.ports.services.callables import IsInstallCallback
+from src.application.services import BaseInstaller, BaseConfigurator, BaseController
 from src.infrastructure.system.subprocess import check_root
 from src.infrastructure.system.systemctl import SystemdUnit, daemon_reload
 
 
-class SystemdUnitInstaller(Installer):
+class SystemdUnitInstaller(BaseInstaller):
     def __init__(self, service_name: str, service_file_content: str):
         self.__service = SystemdUnit(service_name)
         self.__service_file_content = service_file_content
@@ -18,34 +20,35 @@ class SystemdUnitInstaller(Installer):
     def _install(self):
         check_root()
 
-        logger.info(f"Install {self.__service.name} service")
+        logger.debug(f"Install {self.__service.name} service")
         self.__service.write_config(self.__service_file_content)
         daemon_reload()
 
     def _uninstall(self):
         check_root()
 
-        logger.info(f"Uninstall {self.__service.name} service")
+        logger.debug(f"Uninstall {self.__service.name} service")
         self.__service.disable()
         self.__service.stop()
         self.__service.remove()
         daemon_reload()
 
 
-class SystemdUnitConfigurator(Configurator):
-    def __init__(self, service_name: str):
-        self.__service = SystemdUnit(service_name)
+class SystemdUnitConfigurator(BaseConfigurator, ABC):
+    def __init__(self,
+                 service_name: str,
+                 is_install_callback: IsInstallCallback):
+        service = SystemdUnit(service_name)
+        super().__init__(is_install_callback, service.reload)
 
-    def apply(self, users: Users):
-        self.__service.reload()
 
-
-class SystemdUnitController(Controller):
-    def __init__(self, service_name: str):
+class SystemdUnitController(BaseController):
+    def __init__(self, service_name: str, is_install_callback: IsInstallCallback):
+        super().__init__(is_install_callback)
         self.__service = SystemdUnit(service_name)
 
     @property
-    def status(self) -> bool:
+    def _status(self) -> bool:
         return self.__service.status()
 
     def start(self):
@@ -60,5 +63,5 @@ class SystemdUnitController(Controller):
         self.__service.enable()
         self.__service.restart()
 
-    def reload(self):
+    def _reload(self):
         self.__service.reload()

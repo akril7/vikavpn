@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from src.infrastructure.manager.registry import Registry
-from src.settings import Settings
+from src.bootstrap.registry import Registry
+from src.configuration import Settings
 
 
 @dataclass

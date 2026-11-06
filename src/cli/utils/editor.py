@@ -2,7 +2,7 @@ import os
 import shutil
 import subprocess
 
-from src.settings.app import BASE_DIR
+from src.configuration.app import BASE_DIR
 from src.cli.console import console, err, info, warn
 
 

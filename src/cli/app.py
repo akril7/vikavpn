@@ -1,10 +1,10 @@
 from loguru import logger
 
 from src.cli.async_runtime import runtime
-from src.db.connection import create_tables
-from src.infrastructure.manager.registry import Registry
+from src.infrastructure.persistence.connection import create_tables
+from src.bootstrap.registry import Registry
 from src.infrastructure.system.subprocess import is_root
-from src.settings import Settings
+from src.configuration import Settings
 
 from src.cli import console as ui
 from src.cli.menu import main as menu_main

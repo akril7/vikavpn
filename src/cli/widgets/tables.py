@@ -53,6 +53,7 @@ def _tariff_label(u: UserBrief) -> str:
         parts.append("iOS")
     return " + ".join(parts) if parts else "—"
 
+
 def services_table(statuses: dict[str, bool]) -> Table:
     """Таблица статусов сервисов.
 

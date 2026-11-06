@@ -1,10 +1,11 @@
 from loguru import logger
 
-from src.cli.async_runtime import runtime
-from src.core.interfaces import ServiceError
-from src.infrastructure.manager import installation
-from src.infrastructure.manager.registry import Registry
+from src.application.ports.services import ServiceError
+from src.application.ports.registry import RegistryLike
+from src.application.manager import installation, control
 from src.infrastructure.system.subprocess import is_root
+from src.bootstrap.composition.loaders import apply_active_users
+from src.cli.async_runtime import runtime
 from src.cli.console import console, err, ok, warn
 
 
@@ -16,7 +17,7 @@ def _require_root(action: str) -> bool:
     return False
 
 
-def installed_status(registry: Registry) -> dict[str, bool]:
+def installed_status(registry: RegistryLike) -> dict[str, bool]:
     """Возвращает {имя: is_installed} для всех install-таргетов."""
     result: dict[str, bool] = {}
     for name, target in registry.get_install_targets().items():
@@ -29,7 +30,7 @@ def installed_status(registry: Registry) -> dict[str, bool]:
     return result
 
 
-def install(registry: Registry, names: list[str]) -> bool:
+def install(registry: RegistryLike, names: list[str]) -> bool:
     if not _require_root("установка компонентов"):
         return False
 
@@ -53,7 +54,7 @@ def install(registry: Registry, names: list[str]) -> bool:
     return ok_all
 
 
-def uninstall(registry: Registry, names: list[str]) -> bool:
+def uninstall(registry: RegistryLike, names: list[str]) -> bool:
     if not _require_root("удаление компонентов"):
         return False
 
@@ -77,12 +78,9 @@ def uninstall(registry: Registry, names: list[str]) -> bool:
     return ok_all
 
 
-def setup(registry: Registry) -> bool:
+def setup(registry: RegistryLike) -> bool:
     if not _require_root("полная установка (setup)"):
         return False
-
-    from src.infrastructure.manager import configure
-    from src.infrastructure.manager import control
 
     try:
         with console.status("[cyan]Удаляю все компоненты…[/]"):
@@ -92,7 +90,7 @@ def setup(registry: Registry) -> bool:
             installation.install(registry, None)
 
         with console.status("[cyan]Применяю конфигурацию…[/]"):
-            runtime.run(configure.apply_active_users(registry))
+            runtime.run(apply_active_users(registry))
 
         with console.status("[cyan]Перезапускаю сервисы…[/]"):
             control.restart(registry, None)

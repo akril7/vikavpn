@@ -1,28 +1,25 @@
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from pathlib import Path
 from uuid import UUID, uuid4
 
-from loguru import logger
 from sqlalchemy import select
 
-from src.cli.async_runtime import runtime
-from src.core.url_build.file import build_origin, build_clash_config_url
-from src.core.url_build.link import (
-    build_bot_auth_url,
-    build_telegram_proxy_url,
-)
-from src.core.users.importer import import_users_from_file
-from src.core.utils.dt import utcnow
-from src.db.connection import Session
-from src.db.models import User
-from src.db.repo import UserRepository, options
-from src.settings import Settings
+from src.application.urls.file import build_clash_config_url
+from src.application.urls.link import build_telegram_proxy_url, build_bot_auth_url
+from src.configuration import Settings
 
-from src.core.users.flow.registration import generate_password, WORDS_DICT
-from src.db.enums import Messenger
-from src.db.repo.messager import MessengerAlreadyBoundError
+from src.domain.utils.dt import utcnow
+from src.domain.enums import Messenger
+from src.domain.models import User
+
+from src.application.users.registration import generate_password, WORDS_DICT
+from src.application.ports.repo.messenger import MessengerAlreadyBoundError
+
+from src.infrastructure.persistence.connection import Session
+from src.infrastructure.persistence.repo import UserRepository, options
+
+from src.cli.async_runtime import runtime
 
 
 @dataclass
@@ -68,14 +65,13 @@ def list_users(
 
 async def _list_users(filter_kind: str, search: str | None) -> list[UserBrief]:
     async with Session() as session:
-        repo = UserRepository(session)
         stmt = select(User).order_by(User.id)
 
         if filter_kind == "active":
-            from src.core.utils.dt import utcnow
+            from src.domain.utils.dt import utcnow
             stmt = stmt.where(User.sub_expires_at > utcnow())
         elif filter_kind == "expired":
-            from src.core.utils.dt import utcnow
+            from src.domain.utils.dt import utcnow
             stmt = stmt.where(User.sub_expires_at <= utcnow())
         elif filter_kind == "vpn":
             stmt = stmt.where(User.vpn_user.is_(True))
@@ -92,15 +88,14 @@ async def _list_users(filter_kind: str, search: str | None) -> list[UserBrief]:
             needle = search.lower()
             users = [
                 u for u in users
-                if needle in u.name.lower()
-                   or needle in u.uuid.hex.lower()
+                if needle in u.name.lower() or needle in u.uuid.hex.lower()
             ]
 
         return [_to_brief(u) for u in users]
 
 
 def _to_brief(user: User) -> UserBrief:
-    from src.core.utils.dt import utcnow
+    from src.domain.utils.dt import utcnow
 
     now = utcnow()
     days_left = max(0, (user.sub_expires_at.date() - now.date()).days)
@@ -131,9 +126,7 @@ async def _get_user_full(name_or_uuid: str, settings: Settings) -> UserFull | No
 
         user = await repo.get_by_name(
             name_or_uuid,
-            options=options.messenger_options()
-                    + options.managed_options()
-                    + options.manager_options(),
+            options=options.full_options(),
         )
         if user is None:
             try:
@@ -142,31 +135,22 @@ async def _get_user_full(name_or_uuid: str, settings: Settings) -> UserFull | No
                 return None
             user = await repo.get_by_uuid(
                 uuid,
-                options=options.messenger_options()
-                        + options.managed_options()
-                        + options.manager_options(),
+                options=options.full_options(),
             )
         if user is None:
             return None
 
         brief = _to_brief(user)
 
-        origin = build_origin(settings.tls.domain, settings.site.port)
-
         clash_url = (
-            build_clash_config_url(user, origin, settings.clash.configs_urlpath)
+            build_clash_config_url(settings, user)
             if user.vpn_user else None
         )
         tg_proxy_url = (
-            build_telegram_proxy_url(
-                user,
-                settings.mtproxyl.sni,
-                settings.tls.domain,
-                settings.mtproxyl.port,
-            )
+            build_telegram_proxy_url(settings, user)
             if user.proxy_user else None
         )
-        bot_auth_url = build_bot_auth_url(settings.telegram_bot.username, user)
+        bot_auth_url = build_bot_auth_url(settings, user)
 
         managed_names = [
             link.managed.name
@@ -198,8 +182,8 @@ def set_expire(name_or_uuid: str, until_text: str) -> tuple[bool, str]:
 
 
 async def _set_expire(name_or_uuid: str, until_text: str) -> tuple[bool, str]:
-    from src.db.connection import Session
-    from src.db.repo import UserRepository
+    from src.infrastructure.persistence.connection import Session
+    from src.infrastructure.persistence.repo import UserRepository
 
     until = _parse_until(until_text)
     if until is None:
@@ -244,8 +228,8 @@ def toggle_flag(name_or_uuid: str, flag: str) -> tuple[bool, str]:
 
 
 async def _toggle_flag(name_or_uuid: str, flag: str) -> tuple[bool, str]:
-    from src.db.connection import Session
-    from src.db.repo import UserRepository
+    from src.infrastructure.persistence.connection import Session
+    from src.infrastructure.persistence.repo import UserRepository
 
     async with Session() as session:
         repo = UserRepository(session)
@@ -265,8 +249,8 @@ def set_name(name_or_uuid: str, new_name: str) -> tuple[bool, str]:
 
 
 async def _set_name(name_or_uuid: str, new_name: str) -> tuple[bool, str]:
-    from src.db.connection import Session
-    from src.db.repo import UserRepository
+    from src.infrastructure.persistence.connection import Session
+    from src.infrastructure.persistence.repo import UserRepository
 
     new_name = new_name.strip()
     if not (3 <= len(new_name) <= 32):
@@ -292,8 +276,8 @@ def set_password(name_or_uuid: str, new_password: str) -> tuple[bool, str]:
 
 
 async def _set_password(name_or_uuid: str, new_password: str) -> tuple[bool, str]:
-    from src.db.connection import Session
-    from src.db.repo import UserRepository
+    from src.infrastructure.persistence.connection import Session
+    from src.infrastructure.persistence.repo import UserRepository
 
     if len(new_password) < 6:
         return False, "Пароль должен быть не короче 6 символов"
@@ -321,8 +305,8 @@ def set_uuid(name_or_uuid: str, new_uuid_hex: str) -> tuple[bool, str]:
 
 
 async def _set_uuid(name_or_uuid: str, new_uuid_hex: str) -> tuple[bool, str]:
-    from src.db.connection import Session
-    from src.db.repo import UserRepository
+    from src.infrastructure.persistence.connection import Session
+    from src.infrastructure.persistence.repo import UserRepository
     from uuid import UUID
 
     try:
@@ -352,8 +336,8 @@ def unbind_messenger(name_or_uuid: str, messenger_value: str) -> tuple[bool, str
 
 
 async def _unbind_messenger(name_or_uuid: str, messenger_value: str) -> tuple[bool, str]:
-    from src.db.connection import Session
-    from src.db.repo import UserRepository, UserMessengerRepository
+    from src.infrastructure.persistence.connection import Session
+    from src.infrastructure.persistence.repo import UserRepository, UserMessengerRepository
 
     try:
         messenger = Messenger(messenger_value)
@@ -384,8 +368,8 @@ def bind_messenger(
 async def _bind_messenger(
         name_or_uuid: str, messenger_value: str, external_id: int,
 ) -> tuple[bool, str]:
-    from src.db.connection import Session
-    from src.db.repo import UserRepository, UserMessengerRepository
+    from src.infrastructure.persistence.connection import Session
+    from src.infrastructure.persistence.repo import UserRepository, UserMessengerRepository
 
     try:
         messenger = Messenger(messenger_value)
@@ -418,8 +402,8 @@ def add_managed(manager_name: str, managed_name: str) -> tuple[bool, str]:
 
 
 async def _add_managed(manager_name: str, managed_name: str) -> tuple[bool, str]:
-    from src.db.connection import Session
-    from src.db.repo import UserRepository, UserManagementRepository
+    from src.infrastructure.persistence.connection import Session
+    from src.infrastructure.persistence.repo import UserRepository, UserManagementRepository
 
     if manager_name == managed_name:
         return False, "Пользователь не может управлять сам собой"
@@ -452,9 +436,9 @@ def remove_managed(manager_name: str, managed_name: str) -> tuple[bool, str]:
 async def _remove_managed(manager_name: str, managed_name: str) -> tuple[bool, str]:
     from sqlalchemy import delete as sql_delete
 
-    from src.db.connection import Session
-    from src.db.models import UserManagement
-    from src.db.repo import UserRepository
+    from src.infrastructure.persistence.connection import Session
+    from src.domain.models import UserManagement
+    from src.infrastructure.persistence.repo import UserRepository
 
     async with Session() as session:
         repo = UserRepository(session)
@@ -481,8 +465,8 @@ def delete_user(name_or_uuid: str) -> tuple[bool, str]:
 
 
 async def _delete_user(name_or_uuid: str) -> tuple[bool, str]:
-    from src.db.connection import Session
-    from src.db.repo import UserRepository
+    from src.infrastructure.persistence.connection import Session
+    from src.infrastructure.persistence.repo import UserRepository
 
     async with Session() as session:
         repo = UserRepository(session)
@@ -526,9 +510,9 @@ def create_user(spec: CreateUserSpec) -> tuple[bool, str]:
 
 
 async def _create_user(spec: CreateUserSpec) -> tuple[bool, str]:
-    from src.db.connection import Session
-    from src.db.enums import Messenger
-    from src.db.repo import (
+    from src.infrastructure.persistence.connection import Session
+    from src.domain.enums import Messenger
+    from src.infrastructure.persistence.repo import (
         UserRepository,
         UserMessengerRepository,
     )
@@ -575,25 +559,3 @@ async def _create_user(spec: CreateUserSpec) -> tuple[bool, str]:
         await session.commit()
 
     return True, f"Пользователь {spec.name} создан (trial {spec.trial_days} дн.)"
-
-
-# ---------------------------------------------------------------- import
-
-def import_users(path: str) -> tuple[bool, str]:
-    return runtime.run(_import_users(path))
-
-
-async def _import_users(path: str) -> tuple[bool, str]:
-    p = Path(path).expanduser().resolve()
-    if not p.exists():
-        return False, f"Файл не найден: {p}"
-    if not p.is_file():
-        return False, f"Это не файл: {p}"
-
-    try:
-        count = await import_users_from_file(str(p))
-    except Exception as exc:  # noqa: BLE001
-        logger.exception("import_users_from_file failed")
-        return False, f"Ошибка импорта: {exc}"
-
-    return True, f"Импортировано пользователей: {count}"

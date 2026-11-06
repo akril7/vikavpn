@@ -2,9 +2,9 @@ import shutil
 
 from loguru import logger
 
-from src.core.url_build.file import build_origin
+from src.domain.urls.file import build_origin
 from src.infrastructure.system.subprocess import check_root
-from src.settings import HysteriaSettings, SiteSettings, TLSSettings
+from src.configuration import HysteriaSettings, SiteSettings, TLSSettings
 from src.infrastructure.systemd import SystemdUnitInstaller
 from src.infrastructure.system import docker
 
@@ -68,7 +68,6 @@ class HysteriaEndpointInstaller(SystemdUnitInstaller):
     def _uninstall(self):
         check_root()
 
-        logger.debug("Remove hysteria systemd unit")
         super()._uninstall()
 
         logger.debug("Remove hysteria container")
