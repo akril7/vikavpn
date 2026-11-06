@@ -22,8 +22,5 @@ class MTProxyLSettings(BaseSettings):
     # Путь до папки с сайтом (stub - использовать встроенный)
     selfmask_template: str = "stub"
 
-    # socks5 адрес для upstream (если не указан, используется direct)
-    socks5_upstream_address: str = ""
-
     # поддомен для веба (если пустой, используется domain из tls; использует сертификат из tls)
     subdomain: str = ""

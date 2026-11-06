@@ -5,7 +5,7 @@ from src.configuration.base import make_config
 
 
 class TelegramBotSettings(BaseSettings):
-    model_config = make_config(env_prefix="TELEGRAM_")
+    model_config = make_config(env_prefix="TGBOT_")
 
     token: str
     username: str

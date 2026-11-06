@@ -81,8 +81,10 @@ def build_services(settings: Settings) -> tuple[InstallTargets, ControlTargets, 
         ),
         "clash": ClashConfigurator(
             settings.clash, settings.tls,
-            settings.mita, settings.hysteria,
-            settings.trusttunnel),
+            settings.mita, build_is_installed_callback("mita"),
+            settings.hysteria, build_is_installed_callback("hysteria"),
+            settings.trusttunnel, build_is_installed_callback("trusttunnel"),
+        ),
     }
 
     return installers, controllers, configurators

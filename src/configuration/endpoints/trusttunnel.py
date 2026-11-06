@@ -31,6 +31,3 @@ class TrustTunnelSettings(BaseSettings):
     archive_download_link: str = (
         "https://github.com/akril7/TrustTunnel/releases/download/0.0.1/trusttunnel-patched-v1.1.0-linux-x86_64.tar.gz"
     )
-
-    # адрес для forward protocol. Если пустой, используется direct
-    socks5_address: str = ""

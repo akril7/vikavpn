@@ -2,7 +2,7 @@ from src.configuration.endpoints.hysteria import HysteriaSettings
 from src.configuration.endpoints.mita import MitaSettings
 from src.configuration.endpoints.mtproxyl import MTProxyLSettings
 from src.configuration.endpoints.trusttunnel import TrustTunnelSettings
-from src.configuration.apps.telegram import TelegramBotSettings
+from src.configuration.apps.tgbot import TelegramBotSettings
 from src.configuration.apps.reloader import ReloaderSettings
 from src.configuration.apps.payments import PaymentsSettings
 from src.configuration.apps.yoomoney import YoomoneySettings
