@@ -8,8 +8,8 @@ class BaseController(Controller, ABC):
     def __init__(self, is_install_callback: IsInstallCallback):
         self._is_install_callback = is_install_callback
 
-    @abstractmethod
     @property
+    @abstractmethod
     def _status(self) -> bool:
         ...
 

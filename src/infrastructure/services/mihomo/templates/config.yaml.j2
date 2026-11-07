@@ -1,0 +1,28 @@
+mixed-port: {{ proxy_port }}
+allow-lan: false
+bind-address: '*'
+mode: rule
+log-level: error
+ipv6: true
+
+proxies:
+  - name: trusttunnel
+    type: trusttunnel
+    server: {{ hostname }}
+    port: {{ port }}
+    username: {{ username }}
+    password: {{ password }}
+    sni: {{ hostname }}
+    quic: {{ quic }}
+    udp: true
+    health-check: true
+
+proxy-groups:
+  - name: GLOBAL
+    type: select
+    proxies:
+      - trusttunnel
+
+rules:
+  - DOMAIN-SUFFIX,{{ direct_rule_domain }},DIRECT
+  - MATCH,GLOBAL

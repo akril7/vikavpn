@@ -10,8 +10,8 @@ class Registry:
         self.__settings = settings
 
         (self.__installer_targets,
-         self.__configurator_targets,
-         self.__controller_targets) = build_services(settings)
+         self.__controller_targets,
+         self.__configurator_targets) = build_services(settings)
 
     @property
     def settings(self) -> Settings:

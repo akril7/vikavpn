@@ -5,12 +5,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-FILES_DIR = BASE_DIR / "files"
 
 DEFAULT_INSTALL_DIR = BASE_DIR / ".external"
 DEFAULT_CONFIG_DIR = Path("/etc/vikavpn")
+DOWNLOAD_DIR = Path("/tmp")
 
-ENV_PATH = DEFAULT_CONFIG_DIR / "configuration.env"
+ENV_PATH = DEFAULT_CONFIG_DIR / "settings.env"
 
 
 # --------- ENV ------------
@@ -24,5 +24,3 @@ TZ = timezone(timedelta(hours=TIMEZONE_HOURS_DELTA))
 DB_URL = get("DB_URL")
 
 LINK_DOMAIN = get("LINK_DOMAIN")
-
-PROXY_SOCKS5_ADDRESS = get("PROXY_SOCKS5_ADDRESS")  # 127.0.0.1:1080

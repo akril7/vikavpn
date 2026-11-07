@@ -2,7 +2,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from src.domain.urls.file import build_clash_video_guide_url, build_origin
+from src.application.urls.file import build_clash_video_guide_url
 from src.configuration import Settings
 from ..deps import get_user
 from ..keyboards import auth_menu, main_menu, back_menu
@@ -30,8 +30,7 @@ async def cb_main(call: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "menu:help")
 async def cb_help(call: CallbackQuery, state: FSMContext, settings: Settings):
     await state.clear()
-    origin = build_origin(settings.tls.link_domain, settings.site.port)
-    video_url = build_clash_video_guide_url(origin)
+    video_url = build_clash_video_guide_url(settings)
     await call.message.edit_text(
         render_help(video_url, settings.telegram_bot.admin_username),
         reply_markup=back_menu("menu:main"),

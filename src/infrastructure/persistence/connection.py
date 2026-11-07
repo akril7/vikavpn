@@ -10,6 +10,10 @@ def create_engine(url: str | None = None, *, echo: bool | None = None):
         url or DB_URL,
         echo=DEBUG if echo is None else echo,
         pool_pre_ping=True,
+        pool_size=3,
+        max_overflow=4,
+        pool_timeout=30,
+        pool_recycle=1800,
     )
 
 

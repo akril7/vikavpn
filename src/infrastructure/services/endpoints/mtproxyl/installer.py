@@ -4,18 +4,17 @@ from pathlib import Path
 
 from loguru import logger
 
-from src.configuration import MTProxyLSettings, TLSSettings
-from src.configuration.app import PROXY_SOCKS5_ADDRESS
+from src.configuration import MTProxyLSettings, TLSSettings, ProxySettings
 from src.application.services import BaseInstaller
 from src.infrastructure.system.subprocess import check_root, run_pty_proc, run_with_check
 from src.infrastructure.utils.file import download_file
 
 
 class MTProxyLInstaller(BaseInstaller):
-    def __init__(self, mtproxyl: MTProxyLSettings, tls: TLSSettings):
+    def __init__(self, mtproxyl: MTProxyLSettings, tls: TLSSettings, proxy: ProxySettings):
         self.__install_script_link = mtproxyl.install_script_link
         self.__selfmask_template = mtproxyl.selfmask_template
-        self.__socks5_upstream_address = PROXY_SOCKS5_ADDRESS
+        self.__socks5_upstream_address = proxy.address
         self.__domain = tls.domain
         if mtproxyl.subdomain:
             self.__domain = mtproxyl.subdomain + "." + self.__domain

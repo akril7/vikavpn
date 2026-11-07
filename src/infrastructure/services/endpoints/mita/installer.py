@@ -1,16 +1,14 @@
 import shutil
-from pathlib import Path
 
 from loguru import logger
 
+from src.configuration.app import DOWNLOAD_DIR
 from src.infrastructure.utils.file import download_file
 from src.application.services import BaseInstaller
-from src.infrastructure.system.subprocess import deb_is_installed, check_root, install_deb, add_user_to_group, \
-    uninstall_deb
+from src.infrastructure.system.subprocess import (deb_is_installed, check_root,
+                                                  install_deb, add_user_to_group, uninstall_deb)
 from src.infrastructure.system.systemctl import SystemdUnit
 from src.configuration import MitaSettings
-
-DEB_STORE_PATH = Path("/tmp/mita.deb")
 
 
 class MitaInstaller(BaseInstaller):
@@ -25,11 +23,13 @@ class MitaInstaller(BaseInstaller):
     def _install(self):
         check_root()
 
+        deb_store_path = DOWNLOAD_DIR / "mita.deb"
+
         logger.debug("Get mita package")
-        download_file(self.__package_download_link, DEB_STORE_PATH)
+        download_file(self.__package_download_link, deb_store_path)
 
         logger.debug("Install package")
-        install_deb(str(DEB_STORE_PATH))
+        install_deb(str(deb_store_path))
 
         logger.debug("Add user to mita group")
         add_user_to_group("root", "mita")

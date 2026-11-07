@@ -39,7 +39,7 @@ class HysteriaEndpointInstaller(SystemdUnitInstaller):
         self.__config_content = render_config(
             port=hysteria.port,
             auth_url=hysteria.auth_url,
-            mask_url=build_origin(tls.domain, site.port),
+            mask_url=build_origin(tls.domain, site.http_port),
         )
 
     @property
@@ -53,8 +53,8 @@ class HysteriaEndpointInstaller(SystemdUnitInstaller):
         check_root()
 
         if not docker.is_docker_install():
-            logger.info("Install docker")
-            docker.install_docker()
+            logger.error("Cannot install hysteria endpoint: docker not installed")
+            return
 
         logger.debug("Pull image")
         docker.pull_image(self.__image_name)

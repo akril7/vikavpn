@@ -1,33 +1,26 @@
+{%- set http_listen_addr = http_listen_addr or "127.0.0.1" -%}
+
 server {
-    listen {{ port }}{% if tls %} ssl{% endif %};
-{%- if extra_ports %}
-{%- for extra_port in extra_ports %}
-    listen {{ extra_port }}{% if tls %} ssl{% endif %};
-{%- endfor %}
-{%- endif %}
+   listen {{ http_listen_addr }}:{{ http_port }};
+   server_name _;
 
-    server_name {% if tls %}{{ tls.domain }}{% else %}_{% endif %};
-{%- if tls %}
-    ssl_certificate     {{ tls.cert_path }};
-    ssl_certificate_key {{ tls.key_path }};
-{%- endif %}
+   root {{ root_dir }};
+   index index.html;
 
-    root {{ root_dir }};
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
+   location / {
+       try_files $uri $uri/ /index.html =404;
+   }
 
 {% if mounts %}
 {%- for mount in mounts %}
     location {{ mount.location }} {
 {%- if mount.is_proxy %}
         proxy_pass {{ mount.destination }};
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host  $host;
 {%- else %}
         alias {{ mount.destination }}/;
         default_type text/plain;
@@ -36,3 +29,24 @@ server {
 {% endfor %}
 {%- endif %}
 }
+
+{% if tls %}
+server {
+    listen {{ ssl_port }} ssl;
+
+    server_name {{ tls.domain }};
+    ssl_certificate     {{ tls.cert_path }};
+    ssl_certificate_key {{ tls.key_path }};
+
+    location / {
+        proxy_pass http://127.0.0.1:{{ http_port }};
+        proxy_http_version 1.1;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host  $host;
+    }
+}
+{% endif %}

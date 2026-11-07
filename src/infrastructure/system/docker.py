@@ -1,10 +1,6 @@
 import subprocess
-from pathlib import Path
 
-from loguru import logger
-from src.infrastructure.utils.file import download_file
-
-from .subprocess import check_result, run_with_check, deb_is_installed, run_without_out, check_root
+from .subprocess import check_result, run_with_check, deb_is_installed
 
 
 def is_docker_install() -> bool:
@@ -14,21 +10,6 @@ def is_docker_install() -> bool:
 @check_result
 def check_docker_install() -> bool:
     return is_docker_install()
-
-
-def install_docker():
-    if is_docker_install():
-        logger.info("Docker already installed")
-        return
-
-    check_root()
-
-    logger.info("Get docker install script")
-    download_file('https://get.docker.com', Path('/tmp/get-docker.sh'))
-    run_without_out(['sudo', 'bash', '/tmp/get-docker.sh'], check=True)
-
-    logger.info("Check docker installation")
-    check_docker_install()
 
 
 def is_container_running(container_name: str) -> bool:

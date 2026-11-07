@@ -6,17 +6,19 @@ from .apps.tgbot import TelegramBotSettings
 from .apps.reloader import ReloaderSettings
 from .apps.payments import PaymentsSettings
 from .apps.yoomoney import YoomoneySettings
+from .other.proxy import ProxySettings
 from .other.site.site import SiteSettings
 from .other.site.nginx import NginxSettings
 from .other.clash import ClashSettings
 from .other.tls import TLSSettings
-from .other.trustclient import TrustClientSettings
+from .other.mihomo import MihomoSettings
 from .aggregator import Settings
 
 
 __all__ = [
     "Settings",
     "TLSSettings",
+    "ProxySettings",
     "ClashSettings",
     "SiteSettings",
     "NginxSettings",
@@ -25,7 +27,7 @@ __all__ = [
     "HysteriaSettings",
     "MTProxyLSettings",
     "YoomoneySettings",
-    "TrustClientSettings",
+    "MihomoSettings",
     "TelegramBotSettings",
     "ReloaderSettings",
     "PaymentsSettings",

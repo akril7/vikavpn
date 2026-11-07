@@ -3,36 +3,37 @@ import shutil
 from loguru import logger
 
 from src.application.services import BaseInstaller
-from src.configuration import Settings
-from src.configuration.app import FILES_DIR
+from src.configuration import SiteSettings, NginxSettings, TLSSettings
+from src.configuration.app import DOWNLOAD_DIR
+from src.domain.urls.file import get_file_name
 
+from src.infrastructure.utils.file import download_file, unpack_clean
 from src.infrastructure.system.subprocess import deb_is_installed
 from src.infrastructure.system.systemctl import SystemdUnit
 
-from .render import render_index_html, render_nginx_config, Mount
+from .render import render_nginx_config, Mount, render_stub
 
 
 class SiteInstaller(BaseInstaller):
-    def __init__(self, settings: Settings):
-        self.__title = settings.site.title
-        self.__port = settings.site.port
-        self.__extra_ports = settings.site.extra_ports
-        self.__root = settings.site.root_dir
+    def __init__(
+            self,
+            site: SiteSettings,
+            nginx: NginxSettings,
+            tls: TLSSettings,
+            mounts: list[Mount] | None = None):
+        self.__http_port = site.http_port
+        self.__ssl_port = site.ssl_port
+        self.__root = site.root_dir
+        self.__stub_download_url = site.stub_download_url
+        self.__guide_download_url = site.guide_download_url
+        self.__guide_urlpath = site.guide_urlpath
 
-        self.__service = SystemdUnit(settings.nginx.service_name)
-        self.__site_available = settings.nginx.available_path / settings.site.name
-        self.__site_enabled = settings.nginx.enabled_path / settings.site.name
-        self.__tls = settings.tls
+        self.__service = SystemdUnit(nginx.service_name)
+        self.__site_available = nginx.available_path / site.name
+        self.__site_enabled = nginx.enabled_path / site.name
+        self.__tls = tls
 
-        self.__mounts = [
-            Mount("/files/", str(FILES_DIR)),
-            Mount(settings.clash.configs_urlpath, str(settings.clash.configs_store_dir)),
-            Mount(
-                location=settings.payments.payment_path,
-                destination=settings.payments.origin,
-                is_proxy=True,
-            )
-        ]
+        self.__mounts = mounts or []
 
     @property
     def is_installed(self) -> bool:
@@ -43,18 +44,33 @@ class SiteInstaller(BaseInstaller):
             logger.error("Cannot install site: Nginx not installed")
             return
 
-        index_html = render_index_html(title=self.__title)
+        stub_html = render_stub(text="Unconfigured")
         nginx_config = render_nginx_config(
-            port=self.__port,
-            extra_ports=self.__extra_ports,
+            http_port=self.__http_port,
+            ssl_port=self.__ssl_port,
             root_dir=str(self.__root),
             mounts=self.__mounts,
             tls=self.__tls
         )
 
-        logger.debug("Save index.html")
         self.__root.mkdir(parents=True, exist_ok=True)
-        (self.__root / "index.html").write_text(index_html)
+        if self.__stub_download_url:
+            logger.debug("Download stub")
+            archive_path = DOWNLOAD_DIR / get_file_name(self.__stub_download_url)
+            download_file(self.__stub_download_url, archive_path)
+            unpack_clean(archive_path, self.__root)
+        else:
+            logger.debug("Save stub html")
+            (self.__root / "index.html").write_text(stub_html)
+
+        if self.__guide_download_url:
+            relative_dirpath = str(self.__guide_urlpath.parent).removeprefix("/")
+            dirpath = self.__root / relative_dirpath
+            dirpath.mkdir(parents=True, exist_ok=True)
+
+            logger.debug("Download guide")
+            video_path = dirpath / self.__guide_urlpath.name
+            download_file(self.__guide_download_url, video_path)
 
         logger.debug("Save site config")
         self.__site_available.parent.mkdir(parents=True, exist_ok=True)

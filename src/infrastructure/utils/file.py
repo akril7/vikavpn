@@ -21,10 +21,11 @@ def unpack_clean(archive_path: Path, unpack_path: Path):
 
     shutil.unpack_archive(archive_path, unpack_path)
 
-    file_basename = (archive_path.name
-                     .replace(".tar", "")
-                     .replace(".gz", ""))
-    inner_folder = unpack_path / file_basename
+    items_dir = list(unpack_path.iterdir())
+    if len(items_dir) != 1:
+        raise ValueError(f"Target archive has many subdirs: {", ".join(map(str, items_dir))}")
+
+    inner_folder = unpack_path / items_dir[0]
 
     for item in inner_folder.iterdir():
         shutil.move(item, unpack_path / item.name)

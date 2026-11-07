@@ -1,7 +1,12 @@
 import os.path
-from urllib.parse import urljoin
+from pathlib import Path
+from urllib.parse import urljoin, urlparse
 
 from src.domain.models import User
+
+
+def get_file_name(url: str) -> str:
+    return Path(urlparse(url).path).name
 
 
 def build_origin(domain: str, port: int) -> str:

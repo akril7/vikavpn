@@ -1,7 +1,7 @@
 # infrastructure
 
 Адаптеры к внешнему миру: БД-сессии, репозитории, systemd, docker, subprocess,
-nginx, шаблоны и конкретные сервисы (endpoint'ы, site, trustclient).
+nginx, шаблоны и конкретные сервисы (endpoint'ы, site).
 
 ## Состав
 
@@ -31,7 +31,7 @@ nginx, шаблоны и конкретные сервисы (endpoint'ы, site,
           trusttunnel/          # 
           mtproxyl/             # 
         site/                   # SiteInstaller + render
-        trustclient/            # TrustClientInstaller + render
+        mihomo/                 # MihomoInstaller + render
 
 ## Назначение
 

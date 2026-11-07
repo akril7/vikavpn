@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 
 from loguru import logger
 
+from src.configuration.app import DOWNLOAD_DIR
 from src.configuration.endpoints.trusttunnel import TrustTunnelSettings
 from src.infrastructure.systemd import SystemdUnitInstaller
 from src.infrastructure.system.subprocess import check_root
@@ -28,7 +29,7 @@ class TrustTunnelInstaller(SystemdUnitInstaller):
 
         self.__install_dir.mkdir(parents=True, exist_ok=True)
 
-        archive_path = self.__install_dir / Path(urlparse(self.__download_link).path).name
+        archive_path = DOWNLOAD_DIR / Path(urlparse(self.__download_link).path).name
 
         logger.debug(f"Get trusttunel archive")
         download_file(self.__download_link, archive_path)

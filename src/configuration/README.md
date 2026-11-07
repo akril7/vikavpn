@@ -10,7 +10,7 @@
       aggregator.py     # Settings — ленивый агрегатор всех настроек
       other/
         clash.py        # ClashSettings
-        trustclient.py  # TrustClientSettings
+        mihomo.py       # MihomoSettings
         tls.py          # TLSSettings
         site/
           site.py       # SiteSettings
