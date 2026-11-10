@@ -29,7 +29,3 @@
     def main(settings: Settings) -> None:
         _, reloader, expiry = build_reloader_subsystem(settings)
         # ... web.run_app(...)
-
-## Правила
-
-- `__main__.py` — только сборка + `run_app`/`start_polling`.

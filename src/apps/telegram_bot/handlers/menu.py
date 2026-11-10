@@ -2,8 +2,9 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from src.application.urls.file import build_clash_video_guide_url
+from src.application.urls import build_clash_video_guide_url
 from src.configuration import Settings
+
 from ..deps import get_user
 from ..keyboards import auth_menu, main_menu, back_menu
 from ..texts.render import render_start_not_authorized, render_help

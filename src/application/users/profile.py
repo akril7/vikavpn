@@ -5,8 +5,7 @@ from src.domain.models import User
 from src.domain.utils.dt import utcnow
 from src.configuration import Settings
 from src.configuration.app import TZ
-from src.application.urls.file import build_clash_config_url
-from src.application.urls.link import build_telegram_proxy_url
+from src.application.urls import build_clash_config_url, build_telegram_proxy_url, build_bot_auth_url
 
 
 @dataclass(frozen=True)
@@ -20,7 +19,7 @@ class ProfileView:
     telegram_id: int
     clash_url: str | None
     tg_proxy_url: str | None
-    managed_names: list[str]
+    bot_auth_url: str | None
 
 
 def tariff_label(user: User) -> str:
@@ -35,41 +34,16 @@ def tariff_label(user: User) -> str:
 
 def build_profile(user: User, settings: Settings) -> ProfileView:
     """
-    Собрать представление профиля пользователя для отображения в боте.
-
-    Формирует ``ProfileView`` на основе данных пользователя и настроек
-    приложения: рассчитывает остаток дней подписки, строит URL-ы для
-    подключения (Clash-подписка и Telegram-прокси) и собирает имена
-    управляемых пользователей.
-
-    URL-ы строятся только для тех сервисов, которые включены у пользователя
-    (``user.vpn_user`` / ``user.proxy_user``). Для отключённых сервисов
-    соответствующее поле будет ``None``.
-
-    Функция предполагает, что у ``user`` уже загружены связи
-    ``managed_links`` и ``messenger_links`` (например, через
-    ``options.managed_options()`` + ``options.messenger_options()``).
-    Иначе обращение к ``user.managed_links`` / ``user.telegram_id``
-    вызовет ``InvalidRequestError`` из-за ``lazy="raise"``.
-
-    Args:
-        user: Пользователь с загруженными связями ``managed_links``
-            и ``messenger_links``.
-        settings: Настройки приложения (домен, порты, пути URL-ов).
-
-    Returns:
-        Заполненный ``ProfileView`` с рассчитанными полями
-        ``expires_at`` (в локальной TZ), ``days_left``, ``is_active``,
-        ``tariff_label``, ``clash_url``, ``tg_proxy_url``
-        и ``managed_names``.
+    Собрать представление профиля пользователя для отображения.
+    Требует загрузки messenger у user
     """
+
     now = utcnow()
     days_left = max(0, (user.sub_expires_at.date() - now.date()).days)
 
     clash_url = build_clash_config_url(settings, user) if user.vpn_user else None
     tg_proxy_url = build_telegram_proxy_url(settings, user) if user.proxy_user else None
-
-    managed_names = [u.managed.name for u in user.managed_links if u.managed]
+    bot_auth_url = build_bot_auth_url(settings, user)
 
     return ProfileView(
         name=user.name,
@@ -81,5 +55,5 @@ def build_profile(user: User, settings: Settings) -> ProfileView:
         telegram_id=user.telegram_id,
         clash_url=clash_url,
         tg_proxy_url=tg_proxy_url,
-        managed_names=managed_names,
+        bot_auth_url=bot_auth_url
     )

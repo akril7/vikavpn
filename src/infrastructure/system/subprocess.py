@@ -73,7 +73,7 @@ def check_root():
         raise RuntimeError("Require root")
 
 
-def run_pty_proc(command: list[str]) -> tuple[int, subprocess.Popen]:
+def get_pty_proc(command: list[str]) -> tuple[int, subprocess.Popen]:
     master, slave = pty.openpty()
     proc = subprocess.Popen(
         command,
@@ -83,3 +83,22 @@ def run_pty_proc(command: list[str]) -> tuple[int, subprocess.Popen]:
     )
     os.close(slave)
     return master, proc
+
+
+def run_pty_proc(
+        command: list[str],
+        write_text: str | None = None,
+        timeout: float | None = None,
+        check: bool = True
+) -> int:
+    master, proc = get_pty_proc(command)
+    if write_text:
+        os.write(master, write_text.encode())
+
+    rc = proc.wait(timeout=timeout)
+    os.close(master)
+
+    if check and rc != 0:
+        raise RuntimeError("rc != 0")
+
+    return rc

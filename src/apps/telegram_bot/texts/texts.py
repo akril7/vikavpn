@@ -45,7 +45,6 @@ PROFILE_BODY = (
 STATUS_ACTIVE = "активна ({days} дн.)"
 STATUS_EXPIRED = "истекла"
 
-RENEW_CHOOSE_MODE = "Выберите, кому продлить:"
 BTN_RENEW_SELF = "Продлить себе"
 BTN_RENEW_SELF_AND_MANAGED = "Продлить себе и своим"
 BTN_RENEW_OTHER = "Продлить другому"

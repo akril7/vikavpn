@@ -15,6 +15,10 @@ class BaseRepository(Generic[ModelT]):
     async def get(self, pk: Any) -> ModelT | None:
         return await self.session.get(self.model, pk)
 
+    async def all(self) -> list[ModelT]:
+        stmt = select(self.model).order_by(self.model.id)
+        return list((await self.session.scalars(stmt)).all())
+
     async def count(self, **filters: Any) -> int:
         stmt = select(func.count()).select_from(self.model)
         for field, value in filters.items():

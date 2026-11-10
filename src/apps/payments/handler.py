@@ -7,8 +7,8 @@ from urllib.parse import quote_plus
 from aiohttp import web
 from loguru import logger
 
-from src.application.payment.lifecycle import confirm_payment
-from src.infrastructure.http.notify import notify_reload
+from src.application.payment import confirm_payment
+from src.infrastructure.apps.reloader.notify import notify_reload
 from src.infrastructure.persistence.connection import Session
 from src.infrastructure.persistence.repo import PaymentRepository, PaymentUserRepository
 

@@ -1,7 +1,5 @@
 {%- set mieru_enabled = mita is defined and mita -%}
-{%- set hysteria_enabled = hysteria is defined and hysteria -%}
 {%- set trusttunnel_enabled = trusttunnel is defined and trusttunnel -%}
-{%- set hysteria_name = "🎭 Для-тиктока" if user.ios_user else "📶 Резерв быстрый" -%}
 tcp-concurrent: true
 keep-alive-interval: 60
 keep-alive-idle: 120
@@ -22,17 +20,6 @@ proxies:
     udp: true
     username: {{ user.name }}
     password: {{ user.password }}
-{% endif %}
-
-{%- if hysteria_enabled %}
-  - name: {{ hysteria_name }}
-    type: hysteria2
-    server: {{ domain }}
-    port: {{ hysteria.port }}
-    udp: true
-    alpn:
-      - h3
-    password: "{{ user.name }}:{{ user.password }}"
 {% endif %}
 
 {%- if trusttunnel_enabled %}
@@ -66,9 +53,6 @@ proxy-groups:
 {%- if trusttunnel_enabled %}
     - "⚡ Основной"
 {%- endif %}
-{%- if hysteria_enabled %}
-    - "{{ hysteria_name }}"
-{%- endif %}
 {%- if mieru_enabled %}
     - "📶 Резерв"
 {%- endif %}
@@ -90,9 +74,6 @@ proxy-groups:
   - name: GLOBAL
     type: fallback
     proxies:
-{%- if hysteria_enabled %}
-    - "{{ hysteria_name }}"
-{%- endif %}
     - PROXY
     interval: 0
     lazy: false
@@ -115,7 +96,7 @@ dns:
 
 rules:
 {%- if user.ios_user %}
-  - GEOSITE,tiktok,{% if hysteria_enabled %}{{ hysteria_name }}{% else %}PROXY{% endif %}
+  - GEOSITE,tiktok,PROXY
 {%- endif %}
 
   - GEOSITE,pornhub,PROXY

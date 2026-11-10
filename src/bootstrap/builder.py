@@ -1,8 +1,6 @@
-from src.application.ports.registry import InstallTargets, ConfigureTargets, ControlTargets
 from src.configuration import Settings
 from src.infrastructure.app import AppInstaller, AppController
 from src.infrastructure.services.clash import ClashConfigurator
-from src.infrastructure.services.endpoints.hysteria import HysteriaInstaller, HysteriaController
 from src.infrastructure.services.endpoints.mita import MitaInstaller, MitaConfigurator, MitaController
 from src.infrastructure.services.endpoints.mtproxyl import MTProxyLInstaller, MTProxyLConfigurator
 from src.infrastructure.services.endpoints.trusttunnel import TrustTunnelInstaller, TrustTunnelConfigurator
@@ -12,35 +10,30 @@ from src.infrastructure.services.site.render import Mount
 from src.infrastructure.systemd import SystemdUnitController
 
 
-def build_services(settings: Settings) -> tuple[InstallTargets, ControlTargets, ConfigureTargets]:
+def build_services(settings: Settings):
     installers = {
-        "mita": MitaInstaller(settings.mita),
-        "hysteria": HysteriaInstaller(settings),
-        "trusttunnel": TrustTunnelInstaller(settings.trusttunnel),
-        "mtproxyl": MTProxyLInstaller(settings.mtproxyl, settings.tls, settings.proxy),
-        "site": SiteInstaller(
+        "mita": lambda: MitaInstaller(settings.mita),
+        "trusttunnel": lambda: TrustTunnelInstaller(settings.trusttunnel),
+        "mtproxyl": lambda: MTProxyLInstaller(settings.mtproxyl, settings.tls, settings.proxy, settings.site),
+        "site": lambda: SiteInstaller(
             settings.site, settings.nginx, settings.tls,
             mounts=[
                 Mount(settings.clash.configs_urlpath, str(settings.clash.configs_store_dir)),
                 Mount(settings.payments.payment_path, settings.payments.origin, is_proxy=True)
             ]
         ),
-        "mihomo": MihomoInstaller(settings.mihomo, settings.tls),
-        "reloader": AppInstaller("reloader"),
-        "payments": AppInstaller("payments"),
-        "telegram_bot": AppInstaller("telegram_bot"),
+        "mihomo": lambda: MihomoInstaller(settings.mihomo, settings.tls),
+        "reloader": lambda: AppInstaller("reloader"),
+        "payments": lambda: AppInstaller("payments"),
+        "telegram_bot": lambda: AppInstaller("telegram_bot"),
     }
 
     def build_is_installed_callback(name):
-        return lambda: installers[name].is_installed
+        return lambda: installers[name]().is_installed
 
     controllers = {
         "mita": MitaController(
             build_is_installed_callback("mita")
-        ),
-        "hysteria": HysteriaController(
-            settings.hysteria,
-            build_is_installed_callback("hysteria")
         ),
         "mtproxyl": SystemdUnitController(
             settings.mtproxyl.service_name,
@@ -90,7 +83,6 @@ def build_services(settings: Settings) -> tuple[InstallTargets, ControlTargets, 
         "clash": ClashConfigurator(
             settings.clash, settings.tls,
             settings.mita, build_is_installed_callback("mita"),
-            settings.hysteria, build_is_installed_callback("hysteria"),
             settings.trusttunnel, build_is_installed_callback("trusttunnel"),
         ),
     }

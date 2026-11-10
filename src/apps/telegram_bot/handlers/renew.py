@@ -4,17 +4,14 @@ from aiogram.types import CallbackQuery
 
 from src.domain.enums import Tariff
 from ..texts import texts
-from src.application.users.renew import RenewMode
 from src.domain.payment.plans import get_plans
-from src.infrastructure.persistence.repo import options
 from src.configuration import Settings
 
-from ..deps import managed_targets, get_user_or_alert
-from ..keyboards import days_menu, renew_menu, targets_menu, tariff_menu
+from ..deps import get_user_or_alert
+from ..keyboards import days_menu, tariff_menu
 from ..texts.render import (
     render_renew_choose_days,
     render_renew_choose_tariff,
-    render_renew_choose_target, render_renew_choose_mode,
 )
 from ..states import Renew
 
@@ -25,27 +22,6 @@ router = Router()
 
 @router.callback_query(F.data == "menu:renew")
 async def cb_renew(call: CallbackQuery, state: FSMContext):
-    user = await get_user_or_alert(call, options=options.managed_options())
-    if user is None:
-        return
-
-    await state.clear()
-    await call.message.edit_text(
-        render_renew_choose_mode(),
-        reply_markup=renew_menu(has_managed=bool(user.managed_links)),
-    )
-    await call.answer()
-
-
-@router.callback_query(F.data.startswith("renew:"))
-async def cb_renew_mode(call: CallbackQuery, state: FSMContext):
-    try:
-        mode = RenewMode(call.data.split(":", 1)[1])
-    except ValueError:
-        await call.answer()
-        return
-
-    await state.update_data(mode=mode.value)
     await state.set_state(Renew.tariff)
 
     proxy_plans = get_plans(Tariff.PROXY)
@@ -96,26 +72,6 @@ async def cb_renew_days(call: CallbackQuery, state: FSMContext, settings: Settin
         return
 
     await state.update_data(days=days)
-
-    data = await state.get_data()
-    try:
-        mode = RenewMode(data["mode"])
-    except (ValueError, KeyError):
-        await call.answer()
-        return
-
-    if mode == RenewMode.OTHER:
-        user = await get_user_or_alert(call, options=options.managed_options())
-        if not user:
-            return
-
-        await state.set_state(Renew.target)
-        await call.message.edit_text(
-            render_renew_choose_target(),
-            reply_markup=targets_menu(managed_targets(user)),
-        )
-        await call.answer()
-        return
 
     await start_payment_for_renew(call, state, settings)
 

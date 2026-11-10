@@ -1,10 +1,10 @@
 from rich.table import Table
 
+from src.application.users.profile import ProfileView
 from src.cli.console import console
-from src.cli.actions.users import UserBrief
 
 
-def users_table(users: list[UserBrief]) -> Table:
+def users_table(users: list[ProfileView]) -> Table:
     table = Table(
         title="Пользователи",
         title_style="bold cyan",
@@ -12,46 +12,29 @@ def users_table(users: list[UserBrief]) -> Table:
         border_style="cyan",
         show_lines=False,
     )
-    table.add_column("ID", justify="right", style="dim")
     table.add_column("Имя", style="bold")
     table.add_column("Тариф", justify="center")
     table.add_column("Истекает", justify="center")
     table.add_column("Дней", justify="right")
     table.add_column("TG", justify="center")
-    table.add_column("Managed", justify="center")
 
     for u in users:
-        tariff = _tariff_label(u)
         if u.is_active:
-            expires = u.sub_expires_at.strftime("%d.%m.%Y %H:%M")
+            expires = u.expires_at.strftime("%d.%m.%Y %H:%M")
             days = f"[green]{u.days_left}[/]"
         else:
-            expires = u.sub_expires_at.strftime("%d.%m.%Y %H:%M")
+            expires = u.expires_at.strftime("%d.%m.%Y %H:%M")
             days = "[red]0[/]"
         tg = f"[green]● {u.telegram_id}[/]" if u.telegram_id else "[dim]○[/]"
-        managed = "[cyan]▸[/]" if u.has_managed else "[dim]·[/]"
 
         table.add_row(
-            str(u.id),
             u.name,
-            tariff,
+            u.tariff_label,
             expires,
             days,
             tg,
-            managed,
         )
     return table
-
-
-def _tariff_label(u: UserBrief) -> str:
-    parts = []
-    if u.vpn_user:
-        parts.append("VPN")
-    if u.proxy_user:
-        parts.append("Proxy")
-    if u.ios_user:
-        parts.append("iOS")
-    return " + ".join(parts) if parts else "—"
 
 
 def services_table(statuses: dict[str, bool]) -> Table:

@@ -11,7 +11,6 @@ from src.domain.enums import Messenger
 from .base import IdMixin, Base
 
 if TYPE_CHECKING:
-    from .management import UserManagement
     from .messenger import UserMessenger
     from .payment import Payment
 
@@ -26,22 +25,6 @@ class User(IdMixin, Base):
     vpn_user: Mapped[bool] = mapped_column(default=True)
     proxy_user: Mapped[bool] = mapped_column(default=True)
     ios_user: Mapped[bool] = mapped_column(default=False)
-
-    managed_links: Mapped[list["UserManagement"]] = relationship(
-        foreign_keys="UserManagement.manager_id",
-        back_populates="manager",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        lazy="raise",
-    )
-
-    manager_links: Mapped[list["UserManagement"]] = relationship(
-        foreign_keys="UserManagement.managed_id",
-        back_populates="managed",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        lazy="raise",
-    )
 
     messenger_links: Mapped[list["UserMessenger"]] = relationship(
         back_populates="user",

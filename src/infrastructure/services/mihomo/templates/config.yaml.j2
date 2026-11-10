@@ -4,6 +4,8 @@ bind-address: '*'
 mode: rule
 log-level: error
 ipv6: true
+external-controller: 127.0.0.1:10100
+secret: ""
 
 proxies:
   - name: trusttunnel
@@ -17,12 +19,6 @@ proxies:
     udp: true
     health-check: true
 
-proxy-groups:
-  - name: GLOBAL
-    type: select
-    proxies:
-      - trusttunnel
-
 rules:
   - DOMAIN-SUFFIX,{{ direct_rule_domain }},DIRECT
-  - MATCH,GLOBAL
+  - MATCH,trusttunnel

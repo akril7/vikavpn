@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 DEFAULT_INSTALL_DIR = BASE_DIR / ".external"
-DEFAULT_CONFIG_DIR = Path("/etc/vikavpn")
+DEFAULT_CONFIG_DIR = BASE_DIR
 DOWNLOAD_DIR = Path("/tmp")
 
 ENV_PATH = DEFAULT_CONFIG_DIR / "settings.env"

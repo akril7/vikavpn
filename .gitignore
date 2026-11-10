@@ -1,3 +1,5 @@
 .venv
 .idea
 .external
+*.env
+!example.require.env

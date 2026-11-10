@@ -23,40 +23,34 @@ def generate_password() -> str:
     return "".join(secrets.choice(PASSWORD_ALPHABET) for _ in range(PASSWORD_LENGTH))
 
 
+def generate_uuid() -> uuid.UUID:
+    return uuid.uuid4()
+
+
+def generate_name(uid: uuid.UUID) -> str:
+    return f"{secrets.choice(WORDS_DICT)}_{uid.hex[:8]}"
+
+
 async def register_user(
     user_repo: UserRepoLike,
     messenger_repo: UserMessengerRepoLike,
-    messenger: Messenger,
-    external_id: int,
-    ios_user: bool
+    ios_user: bool,
+    messenger: tuple[Messenger, int] | None = None,
 ) -> User:
     """Создать нового пользователя с trial-подпиской и привязать к мессенджеру.
 
-    Генерирует уникальное имя и пароль, создаёт запись ``User``
-    с trial-подпиской на TRIAL_DAYS дней, затем привязывает
-    пользователя к указанному мессенджеру.
+    Имя. uuid и пароль генерируются случайно.
 
     Запись добавляется в сессию через ``flush``, но **не коммитится** —
     коммит выполняет вызывающий код.
 
-    Args:
-        user_repo: Репозиторий для создания пользователя.
-        messenger_repo: Репозиторий для привязки к мессенджеру.
-        messenger: Тип мессенджера (например, ``Messenger.TELEGRAM``).
-        external_id: ID пользователя в мессенджере (например, Telegram ID).
-        ios_user: Флаг, что пользователь на iOS (влияет на формат конфига).
-
-    Returns:
-        Созданный пользователь с заполненными ``id``, ``name``, ``password``,
-        ``uuid`` и trial-подпиской.
-
     Raises:
-        IntegrityError: Сгенерированное имя оказалось неуникальным.
+        IntegrityError: Сгенерированное имя или UUID оказалось неуникальным.
         MessengerAlreadyBoundError: ``external_id`` уже привязан
             к другому пользователю.
     """
-    uid = uuid.uuid4()
-    name = f"{secrets.choice(WORDS_DICT)}_{uid.hex[:8]}"
+    uid = generate_uuid()
+    name = generate_name(uid)
     password = generate_password()
 
     user = await user_repo.create(
@@ -69,12 +63,13 @@ async def register_user(
         ios_user=ios_user,
     )
 
-    await messenger_repo.bind(
-        user_id=user.id,
-        messenger=messenger,
-        external_id=external_id
-    )
+    if messenger:
+        await messenger_repo.bind(
+            user_id=user.id,
+            messenger=messenger[0],
+            external_id=messenger[1]
+        )
 
-    logger.info(f"Registered user {user.name} for {messenger}:{external_id}")
+    logger.info(f"Registered user {user.name} for {messenger[0]}:{messenger[1]}")
 
     return user

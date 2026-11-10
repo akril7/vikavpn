@@ -39,16 +39,11 @@ def run(ctx: CliContext) -> None:
             _do_setup(ctx)
 
 
-def _all_targets(ctx: CliContext) -> list[str]:
-    return list(ctx.registry.get_install_targets().keys())
-
-
-def _pick_targets(ctx: CliContext, verb: str) -> list[str] | None:
-    available = _all_targets(ctx)
-    if not available:
-        return None
-
-    choices = [Choice(title=name, value=name, checked=False) for name in available]
+def _pick_targets(ctx: CliContext, verb: str) -> list[str]:
+    choices = [
+        Choice(title=name, value=name, checked=False)
+        for name in ctx.registry.get_names_of_installers()
+    ]
     selected = prompts.checkbox(
         f"Выберите компоненты для операции «{verb}»",
         choices=choices,
@@ -66,13 +61,9 @@ def _do_status(ctx: CliContext) -> None:
     prompts.pause()
 
 
-def _do_install(ctx: CliContext) -> None:
+def _do_install(ctx: CliContext):
     targets = _pick_targets(ctx, "установка")
     if targets is None:
-        return
-    if not targets:
-        info("Ничего не выбрано")
-        prompts.pause()
         return
 
     console.print()
@@ -83,11 +74,8 @@ def _do_install(ctx: CliContext) -> None:
 
 def _do_uninstall(ctx: CliContext) -> None:
     targets = _pick_targets(ctx, "удаление")
+
     if targets is None:
-        return
-    if not targets:
-        info("Ничего не выбрано")
-        prompts.pause()
         return
 
     confirm = prompts.confirm(

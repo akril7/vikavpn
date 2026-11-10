@@ -55,19 +55,10 @@ def render_profile(profile: ProfileView) -> str:
     text = f"<b>{texts.PROFILE_HEADER}</b>\n\n"
     text += texts.PROFILE_BODY.format(expires_at=profile.expires_at.strftime("%d.%m.%Y %H:%M"),
                                       status=status)
-
-    if profile.managed_names:
-        text += "\n\n👥 <b>Можно оплатить за:</b>\n" + ", ".join(
-            profile.managed_names
-        )
     return text
 
 
 # ---- RENEW ----
-
-def render_renew_choose_mode() -> str:
-    return texts.RENEW_CHOOSE_MODE
-
 
 def render_renew_choose_tariff() -> str:
     return texts.RENEW_CHOOSE_TARIFF
@@ -85,10 +76,6 @@ def render_renew_choose_target() -> str:
 
 def render_payment_created(amount: Decimal) -> str:
     return texts.PAYMENT_CREATED.format(amount=f"{amount:.2f}")
-
-
-def render_payment_not_found() -> str:
-    return texts.PAYMENT_NOT_FOUND
 
 
 def render_payment_not_paid() -> str:

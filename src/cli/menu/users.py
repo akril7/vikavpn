@@ -1,3 +1,4 @@
+from src.application.users.profile import build_profile
 from src.cli.actions import configure as cfg_actions
 from src.cli.actions import users as actions
 from src.cli.console import console, err, info, muted, ok
@@ -9,12 +10,6 @@ from src.cli.widgets.tables import kv_table, users_table
 
 MENU_ITEMS: list[tuple[str, str]] = [
     ("list_all",      "Все пользователи"),
-    ("list_active",   "Активные"),
-    ("list_expired",  "Истёкшие"),
-    ("list_vpn",      "С VPN"),
-    ("list_proxy",    "С Proxy"),
-    ("list_ios",      "С iOS"),
-    ("search",        "Поиск по имени / UUID"),
     ("card",          "Открыть карточку…"),
     ("create",        "Создать нового"),
     ("back",          "Назад"),
@@ -35,10 +30,8 @@ def run(ctx: CliContext) -> None:
         if choice is None or choice == "back":
             return
 
-        if choice.startswith("list_"):
-            _show_list(choice.removeprefix("list_"))
-        elif choice == "search":
-            _do_search()
+        if choice == "list_all":
+            _show_list()
         elif choice == "card":
             _open_card_flow(ctx)
         elif choice == "create":
@@ -47,25 +40,14 @@ def run(ctx: CliContext) -> None:
 
 # ---------------------------------------------------------------- list
 
-def _show_list(kind: str) -> None:
+def _show_list() -> None:
     with console.status("[cyan]Загружаю пользователей…[/]"):
-        users = actions.list_users(filter_kind=kind)
+        users = actions.list_users()
     if not users:
         info("Пусто")
         prompts.pause()
         return
     _render_users_pager(users)
-
-
-def _list_title(kind: str) -> str:
-    return {
-        "all":     "Все пользователи",
-        "active":  "Активные",
-        "expired": "Истёкшие",
-        "vpn":     "С VPN",
-        "proxy":   "С Proxy",
-        "ios":     "С iOS",
-    }.get(kind, "Пользователи")
 
 
 def _render_users_pager(users) -> None:
@@ -76,21 +58,6 @@ def _render_users_pager(users) -> None:
         muted(
             "Прокрутка: ↑↓ / PgUp / PgDn, поиск: /, выход: q"
         )
-
-
-# ---------------------------------------------------------------- search
-
-def _do_search() -> None:
-    query = prompts.text("Введите имя или UUID (частично)")
-    if not query:
-        return
-    with console.status("[cyan]Ищу…[/]"):
-        users = actions.list_users(filter_kind="all", search=query)
-    if not users:
-        info("Ничего не найдено")
-        prompts.pause()
-        return
-    _render_users_pager(users)
 
 
 # ---------------------------------------------------------------- card
@@ -110,40 +77,37 @@ def _show_card(ctx: CliContext, name_or_uuid: str) -> None:
     while True:
         console.clear()
         with console.status("[cyan]Загружаю карточку…[/]"):
-            full = actions.get_user_full(name_or_uuid, ctx.settings)
+            user = actions.get_user(name_or_uuid)
 
-        if full is None:
+        if user is None:
             err(f"Пользователь «{name_or_uuid}» не найден")
             console.print()
             prompts.pause()
             return
 
-        b = full.brief
+        profile = build_profile(user, ctx.settings)
 
         console.print()
         rows = {
-            "ID":          str(b.id),
-            "Имя":         b.name,
-            "UUID":        b.uuid_hex,
-            "Пароль":      full.password,
-            "Истекает":    f"{b.sub_expires_at:%d.%m.%Y %H:%M} (UTC)",
-            "Дней":        str(b.days_left),
-            "Активен":     "[green]да[/]" if b.is_active else "[red]нет[/]",
-            "VPN":         "[green]да[/]" if b.vpn_user else "[dim]нет[/]",
-            "Proxy":       "[green]да[/]" if b.proxy_user else "[dim]нет[/]",
-            "iOS":         "[green]да[/]" if b.ios_user else "[dim]нет[/]",
-            "Telegram":    (f"[green]{b.telegram_id}[/]"
-                            if b.telegram_id else "[dim]не привязан[/]"),
-            "Управляет":   ", ".join(full.managed_names) if full.managed_names else "—",
-            "Управляется": ", ".join(full.manager_names) if full.manager_names else "—",
+            "Имя":         user.name,
+            "UUID":        user.uuid.hex,
+            "Пароль":      user.password,
+            "Истекает":    f"{profile.expires_at:%d.%m.%Y %H:%M} (UTC)",
+            "Дней":        str(profile.days_left),
+            "Активен":     "[green]да[/]" if profile.is_active else "[red]нет[/]",
+            "VPN":         "[green]да[/]" if user.vpn_user else "[red]нет[/]",
+            "PROXY":       "[green]да[/]" if user.proxy_user else "[red]нет[/]",
+            "iOS":         "[green]да[/]" if user.ios_user else "[dim]нет[/]",
+            "Telegram":    (f"[green]{profile.telegram_id}[/]"
+                            if profile.telegram_id else "[dim]не привязан[/]"),
         }
-        console.print(kv_table(f"Пользователь {b.name}", rows))
+        console.print(kv_table(f"Пользователь {user.name}", rows))
 
         console.print()
         console.print("[bold]Ссылки[/]")
-        console.print(f"  Clash:      {full.clash_url or '[dim]—[/]'}")
-        console.print(f"  TG-прокси:  {full.tg_proxy_url or '[dim]—[/]'}")
-        console.print(f"  Bot auth:   {full.bot_auth_url}")
+        console.print(f"  Clash:      {profile.clash_url or '[dim]—[/]'}")
+        console.print(f"  TG-прокси:  {profile.tg_proxy_url or '[dim]—[/]'}")
+        console.print(f"  Bot auth:   {profile.bot_auth_url}")
         console.print()
 
         action = prompts.select(
@@ -166,53 +130,12 @@ def _show_card(ctx: CliContext, name_or_uuid: str) -> None:
 
 def _do_create(ctx: CliContext) -> None:
     console.print("[bold]Создание пользователя[/]")
-    console.print("[dim]Enter — оставить сгенерированное значение.[/]")
     console.print()
 
-    # 1. Имя
-    default_name = actions.suggest_name()
-    name = prompts.text("Имя", default=default_name)
-    if name is None:
-        return
-    name = name.strip() or default_name
-
-    # 2. Пароль
-    default_password = actions.suggest_password()
-    password = prompts.text("Пароль", default=default_password)
-    if password is None:
-        return
-    password = password.strip() or default_password
-
-    # 3. UUID
-    default_uuid = actions.suggest_uuid()
-    uuid_hex = prompts.text("UUID (hex)", default=default_uuid)
-    if uuid_hex is None:
-        return
-    uuid_hex = uuid_hex.strip() or default_uuid
-
-    # 4. Trial
-    trial_text = prompts.text("Trial-период, дней", default="7")
-    if trial_text is None:
-        return
-    try:
-        trial_days = int(trial_text.strip() or "7")
-    except ValueError:
-        err("Trial — это число")
-        prompts.pause()
-        return
-
-    # 5. Флаги
-    vpn = prompts.confirm("VPN-доступ?", default=True)
-    if vpn is None:
-        return
-    proxy = prompts.confirm("Proxy-доступ (MTProxyL)?", default=True)
-    if proxy is None:
-        return
     ios = prompts.confirm("iOS-клиент?", default=False)
     if ios is None:
         return
 
-    # 6. Telegram
     telegram_id: int | None = None
     bind_tg = prompts.confirm("Привязать Telegram сейчас?", default=False)
     if bind_tg is None:
@@ -228,20 +151,12 @@ def _do_create(ctx: CliContext) -> None:
             prompts.pause()
             return
 
-    spec = actions.CreateUserSpec(
-        name=name,
-        password=password,
-        uuid_hex=uuid_hex,
-        trial_days=trial_days,
-        vpn_user=bool(vpn),
-        proxy_user=bool(proxy),
-        ios_user=bool(ios),
-        telegram_id=telegram_id,
-    )
-
     console.print()
     with console.status("[cyan]Создаю пользователя…[/]"):
-        ok_, msg = actions.create_user(spec)
+        ok_, msg = actions.create_user(
+            ios_user=bool(ios),
+            telegram_id=telegram_id
+        )
 
     if ok_:
         ok(msg)

@@ -5,7 +5,7 @@ from src.cli.console import muted
 
 # Юниты, которые нам интересны: наши и используемые извне.
 PREFIXES = ("vikavpn-",)
-EXTRA_UNITS = ("mita", "mtproxyl", "nginx", "docker")
+EXTRA_UNITS = ("mita", "mihomo", "mtproxyl-telemt", "nginx")
 
 
 def list_units() -> list[str]:

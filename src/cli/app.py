@@ -2,7 +2,6 @@ from loguru import logger
 
 from src.cli.async_runtime import runtime
 from src.infrastructure.network.socks import install_socks_proxy
-from src.infrastructure.persistence.connection import create_tables
 from src.bootstrap.registry import Registry
 from src.infrastructure.system.subprocess import is_root
 from src.configuration import Settings
@@ -19,10 +18,6 @@ def run() -> None:
 
     if settings.proxy.enabled:
         install_socks_proxy(settings.proxy.host, settings.proxy.port)
-
-    logger.debug("Connect to db...")
-    runtime.run(create_tables())
-    logger.debug("Connected")
 
     if not is_root():
         ui.warn(

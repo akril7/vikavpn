@@ -1,4 +1,4 @@
-from src.cli.actions import users as actions, configure as cfg_actions
+from src.cli.actions import users as actions, configure
 from src.cli.console import console, err, muted, ok
 from src.cli.state import CliContext
 from src.cli.widgets import prompts
@@ -12,12 +12,9 @@ MENU_ITEMS: list[tuple[str, str]] = [
     ("toggle_ios",   "Toggle iOS"),
     ("set_name",     "Изменить имя"),
     ("set_password", "Изменить пароль"),
-    ("regen_password", "Перегенерировать пароль"),
     ("set_uuid",     "Перегенерировать UUID"),
     ("bind_msg",     "Привязать мессенджер"),
     ("unbind_msg",   "Отвязать мессенджер"),
-    ("add_managed",  "Добавить управляемого"),
-    ("del_managed",  "Удалить управляемого"),
     ("delete",       "Удалить пользователя"),
     ("back",         "Назад"),
 ]
@@ -54,18 +51,12 @@ def _dispatch(ctx: CliContext, name_or_uuid: str, action: str) -> None:
         _do_set_name(ctx, name_or_uuid)
     elif action == "set_password":
         _do_set_password(ctx, name_or_uuid)
-    elif action == "regen_password":
-        _mutate(ctx, actions.regen_password(name_or_uuid))
     elif action == "set_uuid":
         _do_set_uuid(ctx, name_or_uuid)
     elif action == "bind_msg":
         _do_bind_messenger(ctx, name_or_uuid)
     elif action == "unbind_msg":
         _do_unbind_messenger(ctx, name_or_uuid)
-    elif action == "add_managed":
-        _do_add_managed(ctx, name_or_uuid)
-    elif action == "del_managed":
-        _do_remove_managed(ctx, name_or_uuid)
     elif action == "delete":
         _do_delete(ctx, name_or_uuid)
 
@@ -76,9 +67,10 @@ def _mutate(ctx: CliContext, result: tuple[bool, str]) -> None:
     ok_, msg = result
     if ok_:
         ok(msg)
-        cfg_actions.trigger_reload(ctx.settings)
+        configure.trigger_reload(ctx.settings)
     else:
         err(msg)
+
     console.print()
     prompts.pause()
 
@@ -147,20 +139,6 @@ def _do_unbind_messenger(ctx: CliContext, name_or_uuid: str) -> None:
     if not messenger:
         return
     _mutate(ctx, actions.unbind_messenger(name_or_uuid, messenger))
-
-
-def _do_add_managed(ctx: CliContext, name_or_uuid: str) -> None:
-    managed_name = prompts.text("Имя управляемого пользователя")
-    if not managed_name:
-        return
-    _mutate(ctx, actions.add_managed(name_or_uuid, managed_name))
-
-
-def _do_remove_managed(ctx: CliContext, name_or_uuid: str) -> None:
-    managed_name = prompts.text("Имя управляемого пользователя")
-    if not managed_name:
-        return
-    _mutate(ctx, actions.remove_managed(name_or_uuid, managed_name))
 
 
 def _do_delete(ctx: CliContext, name_or_uuid: str) -> None:

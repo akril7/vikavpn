@@ -2,36 +2,22 @@ from loguru import logger
 
 from src.application.ports.services import ServiceError
 from src.application.ports.registry import RegistryLike
-from src.application.manager import installation, control
-from src.infrastructure.system.subprocess import is_root
+from src.application.services.orchestration import installation
+from src.application.services.orchestration import control
 from src.bootstrap.composition.loaders import apply_active_users
 from src.cli.async_runtime import runtime
 from src.cli.console import console, err, ok, warn
-
-
-def _require_root(action: str) -> bool:
-    if is_root():
-        return True
-    err(f"Требуются права root для операции «{action}».")
-    warn("Запустите панель через sudo.")
-    return False
+from src.cli.utils.root import require_root
 
 
 def installed_status(registry: RegistryLike) -> dict[str, bool]:
     """Возвращает {имя: is_installed} для всех install-таргетов."""
-    result: dict[str, bool] = {}
-    for name, target in registry.get_install_targets().items():
-        try:
-            result[name] = target.is_installed
-        except Exception as exc:  # noqa: BLE001
-            logger.exception(f"is_installed failed for {name}")
-            err(f"{name}: не удалось проверить статус ({exc})")
-            result[name] = False
-    return result
+    installed: list[str] = installation.get_installed(registry)
+    return {name: name in installed for name in registry.get_names_of_installers()}
 
 
 def install(registry: RegistryLike, names: list[str]) -> bool:
-    if not _require_root("установка компонентов"):
+    if not require_root("установка компонентов"):
         return False
 
     if not names:
@@ -40,7 +26,7 @@ def install(registry: RegistryLike, names: list[str]) -> bool:
 
     ok_all = True
     for name in names:
-        with console.status(f"[cyan]Устанавливаю {name}…[/]"):
+        with console.status(f"[cyan]Устанавливаю {name}...[/]"):
             try:
                 installation.install(registry, [name])
                 ok(f"{name}: установлен")
@@ -55,7 +41,7 @@ def install(registry: RegistryLike, names: list[str]) -> bool:
 
 
 def uninstall(registry: RegistryLike, names: list[str]) -> bool:
-    if not _require_root("удаление компонентов"):
+    if not require_root("удаление компонентов"):
         return False
 
     if not names:
@@ -64,7 +50,7 @@ def uninstall(registry: RegistryLike, names: list[str]) -> bool:
 
     ok_all = True
     for name in names:
-        with console.status(f"[cyan]Удаляю {name}…[/]"):
+        with console.status(f"[cyan]Удаляю {name}...[/]"):
             try:
                 installation.uninstall(registry, [name])
                 ok(f"{name}: удалён")
@@ -79,21 +65,21 @@ def uninstall(registry: RegistryLike, names: list[str]) -> bool:
 
 
 def setup(registry: RegistryLike) -> bool:
-    if not _require_root("полная установка (setup)"):
+    if not require_root("полная установка (setup)"):
         return False
 
     try:
         with console.status("[cyan]Удаляю все компоненты…[/]"):
-            installation.uninstall(registry, None)
+            installation.uninstall(registry, names=registry.get_names_of_installers())
 
         with console.status("[cyan]Устанавливаю все компоненты…[/]"):
-            installation.install(registry, None)
+            installation.install(registry, names=registry.get_names_of_installers())
 
         with console.status("[cyan]Применяю конфигурацию…[/]"):
-            runtime.run(apply_active_users(registry))
+            runtime.run(apply_active_users(registry, names=registry.get_names_of_controllers()))
 
         with console.status("[cyan]Перезапускаю сервисы…[/]"):
-            control.restart(registry, None)
+            control.restart(registry, names=registry.get_names_of_configurator())
 
         ok("setup завершён успешно")
         return True

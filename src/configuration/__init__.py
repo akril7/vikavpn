@@ -1,4 +1,3 @@
-from .endpoints.hysteria import HysteriaSettings
 from .endpoints.mita import MitaSettings
 from .endpoints.mtproxyl import MTProxyLSettings
 from .endpoints.trusttunnel import TrustTunnelSettings
@@ -24,7 +23,6 @@ __all__ = [
     "NginxSettings",
     "MitaSettings",
     "TrustTunnelSettings",
-    "HysteriaSettings",
     "MTProxyLSettings",
     "YoomoneySettings",
     "MihomoSettings",

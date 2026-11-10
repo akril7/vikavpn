@@ -2,19 +2,12 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from src.application.payment.lifecycle import get_paid_payment
-from src.application.urls.link import build_payment_url
+from src.application.payment import get_paid_payment, create_payment
+from src.application.urls import build_payment_url
 from src.configuration import Settings
 from src.infrastructure.persistence.connection import Session
 from src.infrastructure.persistence.repo import UserRepository, options, PaymentRepository, PaymentUserRepository
 from src.domain.enums import Tariff
-
-from src.application.users.renew import (
-    RenewMode,
-    RenewError,
-    TargetNotFoundError,
-    create_payment_for_renew
-)
 
 from ..keyboards import back_menu, payment_menu
 from ..texts.render import render_auth_user_not_found, render_payment_created, render_payment_not_paid, \
@@ -30,38 +23,29 @@ async def start_payment_for_renew(
 ):
     data = await state.get_data()
     try:
-        mode = RenewMode(data["mode"])
         tariff = Tariff(data["tariff"])
         days = data["days"]
-        target_id = data.get("target_id")
     except KeyError:
         await call.answer()
         return
 
     async with Session() as session:
         user_repo = UserRepository(session)
-        payer = await user_repo.get_by_telegram_id(call.from_user.id, options=options.managed_options())
+        payer = await user_repo.get_by_telegram_id(call.from_user.id)
         if not payer:
             await call.answer(render_auth_user_not_found(), show_alert=True)
             return
 
         try:
-            payment = await create_payment_for_renew(
+            payment = await create_payment(
                 payment_repo=PaymentRepository(session),
                 link_repo=PaymentUserRepository(session),
                 payer=payer,
-                mode=mode,
+                targets=[payer],
                 tariff=tariff,
                 days=days,
                 fee_percent=settings.yoomoney.fee_percent,
-                target_id=target_id,
             )
-        except TargetNotFoundError as exc:
-            await call.answer(exc.message, show_alert=True)
-            return
-        except RenewError as exc:
-            await call.answer(exc.message, show_alert=True)
-            return
         except ValueError:
             await call.answer()
             return

@@ -1,4 +1,3 @@
-from src.configuration.endpoints.hysteria import HysteriaSettings
 from src.configuration.endpoints.mita import MitaSettings
 from src.configuration.endpoints.mtproxyl import MTProxyLSettings
 from src.configuration.endpoints.trusttunnel import TrustTunnelSettings
@@ -26,7 +25,7 @@ class Settings:
 
     def __get(self, name: str, default_cls):
         if self.__settings.get(name) is None:
-            self.__settings[name] = default_cls
+            self.__settings[name] = default_cls()
         return self.__settings[name]
 
     @property
@@ -49,9 +48,6 @@ class Settings:
 
     @property
     def trusttunnel(self) -> TrustTunnelSettings: return self.__get("trusttunnel", TrustTunnelSettings)
-
-    @property
-    def hysteria(self) -> HysteriaSettings: return self.__get("hysteria", HysteriaSettings)
 
     @property
     def mtproxyl(self) -> MTProxyLSettings: return self.__get("mtproxyl", MTProxyLSettings)

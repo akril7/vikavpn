@@ -19,8 +19,5 @@ class MTProxyLSettings(BaseSettings):
     # Имя службы
     service_name: str = "mtproxyl-telemt"
 
-    # Путь до папки с сайтом (stub - использовать встроенный)
-    selfmask_template: str = "stub"
-
     # поддомен для веба (если пустой, используется domain из tls; использует сертификат из tls)
     subdomain: str = ""

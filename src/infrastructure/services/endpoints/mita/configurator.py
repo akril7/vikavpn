@@ -2,7 +2,7 @@ from pathlib import Path
 
 from src.domain.users.filters import filter_vpn_users
 from src.application.ports.services.callables import IsInstallCallback, ReloadControllerCallback
-from src.application.services.configurator import BaseConfigurator
+from src.application.services import BaseConfigurator
 from src.domain.models import Users
 from src.infrastructure.system.subprocess import run_with_check
 from src.configuration import MitaSettings

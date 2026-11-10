@@ -6,7 +6,7 @@
 ## Состав
 
     application/
-      ports/                    # интерфейсы (Protocol/ABC) к внешнему миру
+      ports/                  # интерфейсы (Protocol/ABC) к внешнему миру
         repo/                   # RepoLike классы
           user.py                 # for User
           messenger.py            # for UserMessenger
@@ -17,21 +17,25 @@
           controller.py           # Controller (status/start/stop/restart/reload)
           configurator.py         # Configurator (apply(users))
           errors.py               # ServiceError и подклассы
-      manager/                  # оркестрация через порты
-        installation.py           # install/uninstall/get_installed(registry, names)
-        configure.py              # apply/apply_active_users/build_reloader(registry, ...)
-        control.py                # status/start/stop/restart/reload(registry, names)
-      lifecycle/
-        reloader.py               # Reloader (debounce + max_delay)
-        scheduler.py              # ExpiryScheduler (читает UserRepository)
+      services/               
+        orchestration/          # оркестрация через порты
+          installation.py         # install/uninstall/get_installed
+          configure.py            # apply, build_reloader
+          control.py              # status/start/stop/restart/reload
+        installer.py            # BaseInstaller 
+        controller.py           # BaseController
+        configurator.py         # BaseConfigurator
+      lifecycle/              
+        reloader.py             # Reloader (debounce + max_delay)
+        scheduler.py            # ExpiryScheduler (читает UserRepository)
       users/
-        registration.py           # register_user, generate_password
-        auth.py                   # authorize_by_uuid, authorize_by_link
-        profile.py                # build_profile, ProfileView
-        renew.py                  # create_payment_for_renew, RenewMode
-        importer.py               # import_users_from_file
+        registration.py         # register_user, generate_password
+        auth.py                 # authorize_by_uuid, authorize_by_link
+        profile.py              # build_profile, ProfileView
+        renew.py                # create_payment_for_renew, RenewMode
+        importer.py             # import_users_from_file
       payment/
-        lifecycle.py              # create_payment, confirm_payment, get_paid_payment
+        lifecycle.py            # create_payment, confirm_payment, get_paid_payment
       urls/                     # сборка url-ов через Settings
         file.py                   # build_clash_config_url, build_clash_video_guide_url
         link.py                   # build_telegram_proxy_url, build_bot_auth_url, build_payment_url

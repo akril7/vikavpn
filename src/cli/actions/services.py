@@ -1,18 +1,11 @@
+from src.application.ports.registry import RegistryLike
 from src.application.ports.services import ControllerError
-from src.application.manager import control
-from src.infrastructure.system.subprocess import is_root
+from src.application.services.orchestration import control
 from src.cli.console import console, err, ok, warn
+from src.cli.utils.root import require_root
 
 
-def _require_root(action: str) -> bool:
-    if is_root():
-        return True
-    err(f"Требуются права root для операции «{action}».")
-    warn("Запустите панель через sudo.")
-    return False
-
-
-def status(registry, names: list[str] | None = None) -> dict[str, bool]:
+def status(registry, names: list[str]) -> dict[str, bool]:
     """Возвращает {имя: is_up}. Без root тоже работает (systemctl status)."""
     try:
         return control.status(registry, names)
@@ -27,20 +20,18 @@ def status(registry, names: list[str] | None = None) -> dict[str, bool]:
 def _run_action(
     action_name: str,
     action_fn,
-    registry,
-    names: list[str] | None,
+    registry: RegistryLike,
+    names: list[str],
 ) -> bool:
-    if not _require_root(action_name):
+    if not require_root(action_name):
         return False
 
-    targets = list(registry.get_control_targets(names).keys())
-
-    if not targets:
+    if not names:
         warn("Ничего не выбрано")
         return False
 
     ok_all = True
-    for name in targets:
+    for name in names:
         with console.status(f"[cyan]{action_name}: {name}…[/]"):
             try:
                 action_fn(registry, [name])
@@ -54,17 +45,17 @@ def _run_action(
     return ok_all
 
 
-def start(registry, names: list[str] | None = None) -> bool:
+def start(registry, names: list[str]) -> bool:
     return _run_action("запуск", control.start, registry, names)
 
 
-def stop(registry, names: list[str] | None = None) -> bool:
+def stop(registry, names: list[str]) -> bool:
     return _run_action("остановка", control.stop, registry, names)
 
 
-def restart(registry, names: list[str] | None = None) -> bool:
+def restart(registry, names: list[str]) -> bool:
     return _run_action("перезапуск", control.restart, registry, names)
 
 
-def reload(registry, names: list[str] | None = None) -> bool:
+def reload(registry, names: list[str]) -> bool:
     return _run_action("перезагрузка конфига", control.reload, registry, names)

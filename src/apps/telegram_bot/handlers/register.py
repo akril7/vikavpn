@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from sqlalchemy.exc import IntegrityError
 
-from src.infrastructure.http.notify import notify_reload
+from src.infrastructure.apps.reloader.notify import notify_reload
 from src.infrastructure.persistence.connection import Session
 from src.domain.enums import Messenger
 from src.infrastructure.persistence.repo import UserRepository, UserMessengerRepository
@@ -55,9 +55,8 @@ async def cb_register_platform(call: CallbackQuery, state: FSMContext, settings:
             await register_user(
                 user_repo,
                 messager_repo,
-                Messenger.TELEGRAM,
-                call.from_user.id,
                 ios_user=ios,
+                messenger=(Messenger.TELEGRAM, call.from_user.id)
             )
         except MessengerAlreadyBoundError:
             await call.answer(render_auth_already_bound(), show_alert=True)

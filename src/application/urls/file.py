@@ -8,11 +8,11 @@ from src.domain.urls.file import (
 
 def build_clash_config_url(settings: Settings, user: User):
     return _build_clash_config_url(user=user,
-                                   origin=build_origin(settings.tls.domain, settings.site.port),
+                                   origin=build_origin(settings.tls.domain, settings.site.ssl_port),
                                    path=settings.clash.configs_urlpath)
 
 
 def build_clash_video_guide_url(settings: Settings):
     return _build_clash_video_guide_url(
-        origin=build_origin(settings.tls.domain, settings.site.port)
+        origin=build_origin(settings.tls.domain, settings.site.ssl_port)
     )

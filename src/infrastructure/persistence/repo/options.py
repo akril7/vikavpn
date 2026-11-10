@@ -1,21 +1,13 @@
 from sqlalchemy.orm import Load, selectinload
 
-from src.domain.models import User, UserManagement
+from src.domain.models import User
 
 
 Options = tuple[Load, ...]
 
 
 def full_options() -> Options:
-    return managed_options() + messenger_options() + payments_options()
-
-
-def managed_options() -> Options:
-    """User + managed_links + managed (двухуровневая загрузка)."""
-    # noinspection PyTypeChecker
-    return (
-        selectinload(User.managed_links).joinedload(UserManagement.managed),
-    )
+    return messenger_options() + payments_options()
 
 
 def messenger_options() -> Options:
@@ -28,11 +20,3 @@ def payments_options() -> Options:
     """User + payments."""
     # noinspection PyTypeChecker
     return (selectinload(User.payments),)
-
-
-def manager_options() -> Options:
-    """User + manager_links + manager (обратная сторона managed_links)."""
-    # noinspection PyTypeChecker
-    return (
-        selectinload(User.manager_links).joinedload(UserManagement.manager),
-    )

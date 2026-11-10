@@ -9,7 +9,6 @@
       models/                   # SQLAlchemy-модели (доменные сущности)
         base.py                 # Base, IdMixin, CreateAtMixin
         user.py                 # User
-        management.py           # UserManagement
         messenger.py            # UserMessenger
         payment.py              # Payment
         payment_user.py         # PaymentUser

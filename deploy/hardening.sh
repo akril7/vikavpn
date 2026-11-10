@@ -6,7 +6,8 @@ ROOT_PASSWORD="${ROOT_PASSWORD:-}"
 USER_NAME="${USER_NAME:-}"
 USER_PASSWORD="${USER_PASSWORD:-}"
 SSH_PORT="${SSH_PORT:-35790}"
-PACKAGES=(sudo curl tree ca-certificates python3 python3-venv python3-pip nginx dpkg git)
+INSTALL_DOCKER="${INSTALL_DOCKER:-1}"
+PACKAGES=(sudo curl tree ca-certificates python3 python3-venv python3-pip nginx dpkg git htop)
 SSH_AUTHORIZED_KEYS=()
 if [[ -n "${SSH_AUTHORIZED_KEYS_ENV:-}" ]]; then
     IFS=';' read -r -a SSH_AUTHORIZED_KEYS <<< "$SSH_AUTHORIZED_KEYS_ENV"
@@ -89,6 +90,17 @@ EOF
 sshd -t
 systemctl restart ssh 2>/dev/null || systemctl restart sshd
 
+# Setup journald (minimal RAM usage)
+mkdir -p /etc/systemd
+cat > "/etc/systemd/journald.conf" <<EOF
+[Journal]
+Storage=volatile
+RuntimeMaxUse=3M
+RuntimeMaxFileSize=100K
+EOF
+
+systemctl restart systemd-journald 2>/dev/null || true
+
 # Setup SYSCTL
 cat > "/etc/sysctl.d/90-vikavpn-tuning.conf" <<EOF
 net.ipv4.tcp_keepalive_time=300
@@ -121,3 +133,34 @@ net.ipv6.conf.default.disable_ipv6=0
 EOF
 
 sysctl --system
+
+# ------------------------------- DOCKER -------------------------------------------
+
+if [[ "$INSTALL_DOCKER" == "1" ]]; then
+    echo "Installing Docker..."
+
+    # Add Docker's official GPG key
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+    chmod a+r /etc/apt/keyrings/docker.asc
+
+    # Add the repository to Apt sources
+    cat > /etc/apt/sources.list.d/docker.sources <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/debian
+Suites: $(. /etc/os-release && echo "$VERSION_CODENAME")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+
+    DEBIAN_FRONTEND=noninteractive apt-get update -qq
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+        docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+    systemctl enable --now docker
+
+    echo "Docker installed."
+else
+    echo "Docker installation skipped (INSTALL_DOCKER=$INSTALL_DOCKER)."
+fi

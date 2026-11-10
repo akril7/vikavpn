@@ -1,7 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CopyTextButton
 
 from src.apps.telegram_bot.texts import texts
-from src.application.users.renew import RenewMode
 from src.domain.payment.plans import Plan
 
 
@@ -47,23 +46,12 @@ def back_menu(callback: str) -> InlineKeyboardMarkup:
     ])
 
 
-def renew_menu(has_managed: bool) -> InlineKeyboardMarkup:
-    rows = [
-        [InlineKeyboardButton(
-            text=texts.BTN_RENEW_SELF,
-            callback_data=f"renew:{RenewMode.SELF}",
-        )],
-    ]
-    if has_managed:
-        rows.append([InlineKeyboardButton(
-            text=texts.BTN_RENEW_SELF_AND_MANAGED,
-            callback_data=f"renew:{RenewMode.SELF_AND_MANAGED}",
-        )])
-        rows.append([InlineKeyboardButton(
-            text=texts.BTN_RENEW_OTHER,
-            callback_data=f"renew:{RenewMode.OTHER}",
-        )])
-    rows.append([InlineKeyboardButton(text=texts.BTN_BACK, callback_data="menu:main")])
+def renew_menu() -> InlineKeyboardMarkup:
+    rows = [[InlineKeyboardButton(
+        text=texts.BTN_RENEW_SELF,
+        callback_data=f"renew:self",
+    )], [InlineKeyboardButton(text=texts.BTN_BACK, callback_data="menu:main")]]
+
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 

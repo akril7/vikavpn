@@ -1,6 +1,4 @@
-from typing import Any
-
-from src.application.ports.registry import InstallTargets, ControlTargets, ConfigureTargets
+from src.application.ports.services import Installer, Controller, Configurator
 from src.bootstrap.builder import build_services
 from src.configuration import Settings
 
@@ -17,22 +15,20 @@ class Registry:
     def settings(self) -> Settings:
         return self.__settings
 
-    def get_install_targets(self, names: list[str] | None = None) -> InstallTargets:
-        return _filter(self.__installer_targets, names)
+    def get_names_of_installers(self) -> list[str]:
+        return list(self.__installer_targets.keys())
 
-    def get_control_targets(self, names: list[str] | None = None) -> ControlTargets:
-        return _filter(self.__controller_targets, names)
+    def get_names_of_controllers(self) -> list[str]:
+        return list(self.__controller_targets.keys())
 
-    def get_configure_targets(self, names: list[str] | None = None) -> ConfigureTargets:
-        return _filter(self.__configurator_targets, names)
+    def get_names_of_configurator(self) -> list[str]:
+        return list(self.__configurator_targets.keys())
 
+    def get_installer(self, name: str) -> Installer:
+        return self.__installer_targets[name]
 
-def _filter(storage, names: list[str] | None = None) -> dict[str, Any]:
-    if not names:
-        return dict(storage.items())
+    def get_controller(self, name: str) -> Controller:
+        return self.__controller_targets[name]
 
-    for name in names:
-        if name not in storage:
-            raise ValueError(f"Цели с именем {name} не существует")
-
-    return dict(filter(lambda v: v[0] in names, storage.items()))
+    def get_configurator(self, name: str) -> Configurator:
+        return self.__configurator_targets[name]

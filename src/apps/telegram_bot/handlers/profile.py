@@ -14,7 +14,7 @@ router = Router()
 
 @router.callback_query(F.data == "menu:profile")
 async def cb_profile(call: CallbackQuery, settings: Settings):
-    user = await get_user(call.from_user.id, options=options.messenger_options() + options.managed_options())
+    user = await get_user(call.from_user.id, options=options.messenger_options())
     if user is None:
         await call.answer("Пользователь не найден", show_alert=True)
         return

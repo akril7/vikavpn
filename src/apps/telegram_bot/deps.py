@@ -21,11 +21,3 @@ async def get_user_or_alert(call: CallbackQuery, options: Options = ()) -> User 
         await call.answer(render_auth_user_not_found(), show_alert=True)
         return
     return user
-
-
-def managed_targets(user: User) -> list[tuple[int, str]]:
-    return [
-        (link.managed.id, link.managed.name)
-        for link in user.managed_links
-        if link.managed is not None
-    ]

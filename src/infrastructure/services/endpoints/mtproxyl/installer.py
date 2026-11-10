@@ -1,23 +1,30 @@
-import os
 import shutil
 from pathlib import Path
 
 from loguru import logger
 
-from src.configuration import MTProxyLSettings, TLSSettings, ProxySettings
+from src.configuration import MTProxyLSettings, TLSSettings, ProxySettings, SiteSettings
 from src.application.services import BaseInstaller
 from src.infrastructure.system.subprocess import check_root, run_pty_proc, run_with_check
 from src.infrastructure.utils.file import download_file
 
+from .render import render_nginx_conf
+
 
 class MTProxyLInstaller(BaseInstaller):
-    def __init__(self, mtproxyl: MTProxyLSettings, tls: TLSSettings, proxy: ProxySettings):
+    def __init__(self, mtproxyl: MTProxyLSettings, tls: TLSSettings, proxy: ProxySettings, site: SiteSettings):
         self.__install_script_link = mtproxyl.install_script_link
-        self.__selfmask_template = mtproxyl.selfmask_template
         self.__socks5_upstream_address = proxy.address
+        self.__tls = tls
         self.__domain = tls.domain
         if mtproxyl.subdomain:
             self.__domain = mtproxyl.subdomain + "." + self.__domain
+
+        self.__nginx_conf = render_nginx_conf(
+            tls=tls,
+            proxy_domain=self.__domain,
+            site_http_port=site.http_port
+        )
 
     @property
     def is_installed(self) -> bool:
@@ -32,10 +39,9 @@ class MTProxyLInstaller(BaseInstaller):
         download_file(self.__install_script_link, script_path)
 
         logger.debug("Run mtproxyl install script")
-        cmd = [
+        run_pty_proc(command=[
             "sudo", "bash", script_path, "--",
             "--web-domain", self.__domain,
-            "--selfmask-template", self.__selfmask_template,
             "--mode", "manager",
             "--engine", "binary",
             "--engine-version", "3.5.14",
@@ -43,7 +49,6 @@ class MTProxyLInstaller(BaseInstaller):
             "--proxy-mode", "web",
             "--port", "443",
             "--mask", "off",
-            "--sni-policy", "reject_handshake",
             "--meko", "no",
             "--web", "yes",
             "--web-layout", "shared",
@@ -52,11 +57,18 @@ class MTProxyLInstaller(BaseInstaller):
             "--web-carriers", "websocket-lanes,https-lanes,websocket",
             "--web-secret-mode", "dd",
             "--web-port", "443",
-        ]
+        ], timeout=60.0)
 
-        master, proc = run_pty_proc(cmd)
-        proc.wait()
-        os.close(master)
+        run_pty_proc(
+            command=["mtproxyl", "web", "nginx-config", "on"],
+            write_text="y\n"
+        )
+
+        Path("/tmp/mtproxy.nginx.conf").write_text(self.__nginx_conf)
+
+        run_pty_proc(
+            command=["mtproxyl", "web", "nginx-config", "write", "<", "/tmp/mtproxy.nginx.conf"]
+        )
 
         if self.__socks5_upstream_address:
             logger.debug("Setup socks5 upstream")
@@ -65,7 +77,8 @@ class MTProxyLInstaller(BaseInstaller):
 
     def _uninstall(self):
         logger.debug("Run mtproxyl uninstall command")
-        master, proc = run_pty_proc(["mtproxyl", "uninstall"])
-        os.write(master, "yes\n\n\n".encode())
-        proc.wait()
-        os.close(master)
+        run_pty_proc(
+            command=["mtproxyl", "uninstall"],
+            write_text="yes\n\n\n",
+            timeout=20.0
+        )

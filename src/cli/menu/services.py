@@ -1,9 +1,7 @@
 from src.cli.actions import services as actions
 from src.cli.console import console, info
 from src.cli.state import CliContext
-from src.cli.utils import systemd
 from src.cli.widgets import prompts
-from src.cli.widgets.logs import show_logs
 from src.cli.widgets.prompts import Choice
 from src.cli.widgets.tables import print_services_status
 
@@ -14,17 +12,12 @@ MENU_ITEMS: list[tuple[str, str]] = [
     ("stop",     "Остановить…"),
     ("restart",  "Перезапустить…"),
     ("reload",   "Перезагрузить конфиг…"),
-    ("logs",     "Логи (live)…"),
     ("back",     "Назад"),
 ]
 
 
 def _pick_targets(ctx: CliContext, verb: str) -> list[str] | None:
-    available = list(ctx.registry.get_control_targets().keys())
-    if not available:
-        return None
-
-    choices = [Choice(title=name, value=name, checked=False) for name in available]
+    choices = [Choice(title=name, value=name, checked=False) for name in ctx.registry.get_names_of_controllers()]
     selected = prompts.checkbox(
         f"Выберите сервисы для операции «{verb}»",
         choices=choices,
@@ -48,8 +41,6 @@ def run(ctx: CliContext) -> None:
 
         if choice == "status":
             _do_status(ctx)
-        elif choice == "logs":
-            _do_logs()
         else:
             _do_action(ctx, choice)
 
@@ -62,38 +53,10 @@ def _print_title() -> None:
 def _do_status(ctx: CliContext) -> None:
     console.print()
     with console.status("[cyan]Опрашиваю статусы…[/]"):
-        statuses = actions.status(ctx.registry)
+        statuses = actions.status(ctx.registry, ctx.registry.get_names_of_controllers())
     console.print()
     print_services_status(statuses)
     console.print()
-    prompts.pause()
-
-
-def _do_logs() -> None:
-    units = systemd.list_units()
-    if not units:
-        info("Не найдено ни одного подходящего systemd-юнита")
-        prompts.pause()
-        return
-
-    choice = prompts.select(
-        "Выберите сервис для просмотра логов",
-        choices=[
-            Choice(title=unit, value=unit)
-            for unit in units
-        ],
-    )
-    if choice is None:
-        return
-
-    console.print(f"[dim]Открываю логи {choice}. Выход — Ctrl+C.[/]")
-    import time
-    time.sleep(0.4)
-
-    show_logs(choice)
-
-    console.print()
-    info(f"Просмотр логов {choice} завершён")
     prompts.pause()
 
 
