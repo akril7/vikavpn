@@ -11,6 +11,7 @@ from src.application.urls import build_clash_config_url, build_telegram_proxy_ur
 @dataclass(frozen=True)
 class ProfileView:
     name: str
+    uuid_hex: str
     password: str
     expires_at: datetime
     is_active: bool
@@ -47,6 +48,7 @@ def build_profile(user: User, settings: Settings) -> ProfileView:
 
     return ProfileView(
         name=user.name,
+        uuid_hex=user.uuid.hex,
         password=user.password,
         expires_at=user.sub_expires_at.astimezone(TZ),
         is_active=user.is_active,

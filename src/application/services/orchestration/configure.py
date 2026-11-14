@@ -10,7 +10,7 @@ from src.application.lifecycle.reloader import Reloader
 def apply(users: list[User], registry: RegistryLike, names: list[str]):
     for name in names:
         target = registry.get_configurator(name)
-        logger.info(f"Применение настроек для {name}")
+        logger.debug(f"Применение настроек для {name}")
         try:
             target.apply(users)
         except ConfiguratorError as e:

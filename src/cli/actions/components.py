@@ -13,7 +13,7 @@ from src.cli.utils.root import require_root
 def installed_status(registry: RegistryLike) -> dict[str, bool]:
     """Возвращает {имя: is_installed} для всех install-таргетов."""
     installed: list[str] = installation.get_installed(registry)
-    return {name: name in installed for name in registry.get_names_of_installers()}
+    return {name: name in installed for name in registry.names_of_installers}
 
 
 def install(registry: RegistryLike, names: list[str]) -> bool:
@@ -64,22 +64,26 @@ def uninstall(registry: RegistryLike, names: list[str]) -> bool:
     return ok_all
 
 
-def setup(registry: RegistryLike) -> bool:
+def setup(registry: RegistryLike, names: list[str]) -> bool:
     if not require_root("полная установка (setup)"):
         return False
 
     try:
         with console.status("[cyan]Удаляю все компоненты…[/]"):
-            installation.uninstall(registry, names=registry.get_names_of_installers())
+            installation.uninstall(registry,
+                                   names=list(filter(lambda x: x in registry.names_of_installers, names)))
 
         with console.status("[cyan]Устанавливаю все компоненты…[/]"):
-            installation.install(registry, names=registry.get_names_of_installers())
+            installation.install(registry,
+                                 names=list(filter(lambda x: x in registry.names_of_installers, names)))
 
         with console.status("[cyan]Применяю конфигурацию…[/]"):
-            runtime.run(apply_active_users(registry, names=registry.get_names_of_controllers()))
+            runtime.run(apply_active_users(registry,
+                                           names=list(filter(lambda x: x in registry.names_of_configurators, names))))
 
         with console.status("[cyan]Перезапускаю сервисы…[/]"):
-            control.restart(registry, names=registry.get_names_of_configurator())
+            control.restart(registry,
+                            names=list(filter(lambda x: x in registry.names_of_controllers, names)))
 
         ok("setup завершён успешно")
         return True
@@ -90,3 +94,11 @@ def setup(registry: RegistryLike) -> bool:
         logger.exception("setup failed")
         err(f"setup: {exc}")
         return False
+
+
+def filter_installed_names(registry: RegistryLike, target: list[str]) -> list[str]:
+    installed = installed_status(registry)
+    return [
+        name for name in target
+        if installed.get(name, False)
+    ]

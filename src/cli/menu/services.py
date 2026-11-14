@@ -1,4 +1,5 @@
 from src.cli.actions import services as actions
+from src.cli.actions.components import filter_installed_names
 from src.cli.console import console, info
 from src.cli.state import CliContext
 from src.cli.widgets import prompts
@@ -17,7 +18,10 @@ MENU_ITEMS: list[tuple[str, str]] = [
 
 
 def _pick_targets(ctx: CliContext, verb: str) -> list[str] | None:
-    choices = [Choice(title=name, value=name, checked=False) for name in ctx.registry.get_names_of_controllers()]
+    choices = [
+        Choice(title=name, value=name, checked=False)
+        for name in filter_installed_names(ctx.registry, ctx.registry.names_of_controllers)
+    ]
     selected = prompts.checkbox(
         f"Выберите сервисы для операции «{verb}»",
         choices=choices,
@@ -53,7 +57,8 @@ def _print_title() -> None:
 def _do_status(ctx: CliContext) -> None:
     console.print()
     with console.status("[cyan]Опрашиваю статусы…[/]"):
-        statuses = actions.status(ctx.registry, ctx.registry.get_names_of_controllers())
+        statuses = actions.status(ctx.registry,
+                                  filter_installed_names(ctx.registry, ctx.registry.names_of_controllers))
     console.print()
     print_services_status(statuses)
     console.print()

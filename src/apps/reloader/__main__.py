@@ -1,4 +1,4 @@
-from aiohttp import web
+from aiohttp.web import Application, run_app
 
 from src.bootstrap.composition.builders import build_reloader_subsystem
 from src.configuration import Settings
@@ -6,22 +6,22 @@ from src.configuration import Settings
 from .api import handle_reload, handle_flush
 
 
-def create_app(settings: Settings) -> web.Application:
+def create_app(settings: Settings) -> Application:
     registry, reloader, expiry = build_reloader_subsystem(settings)
 
-    app = web.Application()
+    app = Application()
     app["reloader"] = reloader
     app["expiry"] = expiry
 
     app.router.add_post("/reload", handle_reload)
     app.router.add_post("/flush", handle_flush)
 
-    async def _start(_: web.Application):
+    async def _start(_: Application):
         reloader.start()
         await expiry.bootstrap()
         expiry.start()
 
-    async def _stop(_: web.Application):
+    async def _stop(_: Application):
         await expiry.stop()
         await reloader.stop()
 
@@ -31,7 +31,7 @@ def create_app(settings: Settings) -> web.Application:
 
 
 def main(settings: Settings):
-    web.run_app(
+    run_app(
         create_app(settings),
         host=settings.reloader.host,
         port=settings.reloader.port,

@@ -42,7 +42,7 @@ def run(ctx: CliContext) -> None:
 def _pick_targets(ctx: CliContext, verb: str) -> list[str]:
     choices = [
         Choice(title=name, value=name, checked=False)
-        for name in ctx.registry.get_names_of_installers()
+        for name in ctx.registry.names_of_installers
     ]
     selected = prompts.checkbox(
         f"Выберите компоненты для операции «{verb}»",
@@ -94,8 +94,10 @@ def _do_uninstall(ctx: CliContext) -> None:
 
 
 def _do_setup(ctx: CliContext) -> None:
+    targets = _pick_targets(ctx, "удаление")
+
     confirm = prompts.confirm(
-        "Полная переустановка: удалит ВСЕ компоненты и поставит заново. "
+        f"Полная переустановка: удалит компоненты {', '.join(targets)} и поставит заново. "
         "Продолжить?",
         default=False,
     )
@@ -105,6 +107,6 @@ def _do_setup(ctx: CliContext) -> None:
         return
 
     console.print()
-    actions.setup(ctx.registry)
+    actions.setup(ctx.registry, targets)
     console.print()
     prompts.pause()

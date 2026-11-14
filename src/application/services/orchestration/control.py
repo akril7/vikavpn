@@ -7,7 +7,7 @@ def status(registry: RegistryLike, names: list[str]) -> dict[str, bool]:
     result = {}
     for name in names:
         target = registry.get_controller(name)
-        logger.info(f"Получение статуса для {name}")
+        logger.debug(f"Получение статуса для {name}")
         result[name] = target.status
 
     return result
@@ -16,26 +16,26 @@ def status(registry: RegistryLike, names: list[str]) -> dict[str, bool]:
 def start(registry: RegistryLike, names: list[str]):
     for name in names:
         target = registry.get_controller(name)
-        logger.info(f"Запуск {name}")
+        logger.debug(f"Запуск {name}")
         target.start()
 
 
 def stop(registry: RegistryLike, names: list[str]):
     for name in names:
         target = registry.get_controller(name)
-        logger.info(f"Остановка {name}")
+        logger.debug(f"Остановка {name}")
         target.stop()
 
 
 def restart(registry: RegistryLike, names: list[str]):
     for name in names:
         target = registry.get_controller(name)
-        logger.info(f"Перезапуск {name}")
+        logger.debug(f"Перезапуск {name}")
         target.restart()
 
 
 def reload(registry: RegistryLike, names: list[str]):
     for name in names:
         target = registry.get_controller(name)
-        logger.info(f"Перезагрузка {name}")
+        logger.debug(f"Перезагрузка {name}")
         target.reload()

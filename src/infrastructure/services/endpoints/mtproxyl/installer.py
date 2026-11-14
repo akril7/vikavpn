@@ -5,7 +5,7 @@ from loguru import logger
 
 from src.configuration import MTProxyLSettings, TLSSettings, ProxySettings, SiteSettings
 from src.application.services import BaseInstaller
-from src.infrastructure.system.subprocess import check_root, run_pty_proc, run_with_check
+from src.infrastructure.system.subprocess import check_root, run_pty_proc, run_with_check, deb_is_installed
 from src.infrastructure.utils.file import download_file
 
 from .render import render_nginx_conf
@@ -37,6 +37,10 @@ class MTProxyLInstaller(BaseInstaller):
 
         logger.debug("Get mtproxyl install script")
         download_file(self.__install_script_link, script_path)
+
+        logger.debug("Stop system nginx")
+        if deb_is_installed("nginx"):
+            run_with_check(["systemctl", "stop", "nginx"])
 
         logger.debug("Run mtproxyl install script")
         run_pty_proc(command=[
@@ -74,6 +78,10 @@ class MTProxyLInstaller(BaseInstaller):
             logger.debug("Setup socks5 upstream")
             run_with_check(["mtproxyl", "upstream", "add", "proxy", "socks5", self.__socks5_upstream_address])
             run_with_check(["mtproxyl", "upstream", "remove", "direct"])
+
+        logger.debug("Start system nginx")
+        if deb_is_installed("nginx"):
+            run_with_check(["systemctl", "start", "nginx"])
 
     def _uninstall(self):
         logger.debug("Run mtproxyl uninstall command")

@@ -10,6 +10,8 @@ def render_config(
         password: str,
         quic: bool,
         proxy_port: int,
+        ctrl_port: int,
+        ctrl_secret: str,
         direct_rule_domain: str) -> str:
     template = env.get_template("config.yaml.j2")
     return template.render(
@@ -19,5 +21,7 @@ def render_config(
         password=password,
         quic=quic,
         proxy_port=proxy_port,
-        direct_rule_domain=direct_rule_domain
+        ctrl_port=ctrl_port,
+        secret=ctrl_secret,
+        direct_rule_domain=direct_rule_domain,
     )

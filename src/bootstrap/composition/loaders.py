@@ -4,4 +4,4 @@ from src.infrastructure.persistence.loaders import load_active_users
 
 
 async def apply_active_users(registry: RegistryLike, names: list[str]) -> None:
-    await configure.apply(await load_active_users(), registry, names)
+    configure.apply(await load_active_users(), registry, names)

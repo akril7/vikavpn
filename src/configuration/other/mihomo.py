@@ -10,9 +10,11 @@ class MihomoSettings(BaseSettings):
     service_name: str = "mihomo"
 
     # Параметры подключения
-    hostname: str = ""
+    hostname: str
+    username: str
+    password: str
     port: int = 8443
-    username: str = ""
-    password: str = ""
     use_quic: bool = True
     proxy_port: int = 1088
+    external_controller_port: int = 10111
+    external_controller_secret: str = ""

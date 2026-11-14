@@ -13,6 +13,7 @@ def users_table(users: list[ProfileView]) -> Table:
         show_lines=False,
     )
     table.add_column("Имя", style="bold")
+    table.add_column("UUID", style="bold")
     table.add_column("Тариф", justify="center")
     table.add_column("Истекает", justify="center")
     table.add_column("Дней", justify="right")
@@ -29,6 +30,7 @@ def users_table(users: list[ProfileView]) -> Table:
 
         table.add_row(
             u.name,
+            u.uuid_hex,
             u.tariff_label,
             expires,
             days,

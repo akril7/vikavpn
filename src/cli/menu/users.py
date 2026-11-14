@@ -1,4 +1,4 @@
-from src.application.users.profile import build_profile
+from src.application.users.profile import build_profile, ProfileView
 from src.cli.actions import configure as cfg_actions
 from src.cli.actions import users as actions
 from src.cli.console import console, err, info, muted, ok
@@ -31,7 +31,7 @@ def run(ctx: CliContext) -> None:
             return
 
         if choice == "list_all":
-            _show_list()
+            _show_list(ctx)
         elif choice == "card":
             _open_card_flow(ctx)
         elif choice == "create":
@@ -40,17 +40,19 @@ def run(ctx: CliContext) -> None:
 
 # ---------------------------------------------------------------- list
 
-def _show_list() -> None:
+def _show_list(ctx: CliContext) -> None:
     with console.status("[cyan]Загружаю пользователей…[/]"):
-        users = actions.list_users()
+        users = actions.list_users(load_options=True)
     if not users:
         info("Пусто")
         prompts.pause()
         return
-    _render_users_pager(users)
+
+    profiles = [build_profile(u, ctx.settings) for u in users]
+    _render_users_pager(profiles)
 
 
-def _render_users_pager(users) -> None:
+def _render_users_pager(users: list[ProfileView]) -> None:
     table = users_table(users)
     with console.pager(styles=True, links=True):
         console.print(table)

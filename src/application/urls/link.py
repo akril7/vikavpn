@@ -1,5 +1,4 @@
 from src.configuration import Settings
-from src.configuration.app import LINK_DOMAIN
 from src.domain.models import User, Payment
 from src.domain.urls.link import (
     build_telegram_proxy_url as _build_telegram_proxy_url,
@@ -9,7 +8,7 @@ from src.domain.urls.link import (
 
 
 def build_telegram_proxy_url(settings: Settings, user: User) -> str:
-    domain = LINK_DOMAIN or settings.tls.domain
+    domain = settings.mtproxyl.build_domain(settings.tls.domain)
     return _build_telegram_proxy_url(user=user, domain=domain)
 
 

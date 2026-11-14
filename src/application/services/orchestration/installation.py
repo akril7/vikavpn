@@ -9,7 +9,7 @@ def install(registry: RegistryLike, names: list[str]):
     for name in names:
         target = registry.get_installer(name)
         if not target.is_installed:
-            logger.info(f"Устанавливаем {name}")
+            logger.debug(f"Устанавливаем {name}")
             target.install()
         else:
             logger.warning(f"{name} уже установлен")
@@ -20,7 +20,7 @@ def uninstall(registry: RegistryLike, names: list[str]):
     for name in names:
         target = registry.get_installer(name)
         if target.is_installed:
-            logger.info(f"Удаляем {name}")
+            logger.debug(f"Удаляем {name}")
             target.uninstall()
         else:
             logger.warning(f"{name} не установлен")
@@ -29,7 +29,7 @@ def uninstall(registry: RegistryLike, names: list[str]):
 def get_installed(registry: RegistryLike, names: list[str] | None = None) -> list[str]:
     """ Получить имена установленных целей """
     if names is None:
-        names = registry.get_names_of_installers()
+        names = registry.names_of_installers
 
     return [
         name for name in names

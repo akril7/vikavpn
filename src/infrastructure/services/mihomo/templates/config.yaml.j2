@@ -4,8 +4,8 @@ bind-address: '*'
 mode: rule
 log-level: error
 ipv6: true
-external-controller: 127.0.0.1:10100
-secret: ""
+external-controller: 127.0.0.1:{{ ctrl_port }}
+secret: "{{ secret }}"
 
 proxies:
   - name: trusttunnel
@@ -20,5 +20,7 @@ proxies:
     health-check: true
 
 rules:
+{%- if direct_rule_domain is defined and direct_rule_domain %}
   - DOMAIN-SUFFIX,{{ direct_rule_domain }},DIRECT
+{%- endif %}
   - MATCH,trusttunnel

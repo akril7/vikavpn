@@ -21,3 +21,8 @@ class MTProxyLSettings(BaseSettings):
 
     # поддомен для веба (если пустой, используется domain из tls; использует сертификат из tls)
     subdomain: str = ""
+
+    def build_domain(self, basedomain: str) -> str:
+        if self.subdomain:
+            return f"{self.subdomain.removesuffix('.')}.{basedomain}"
+        return basedomain

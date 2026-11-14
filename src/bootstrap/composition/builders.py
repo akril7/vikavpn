@@ -11,7 +11,7 @@ def build_reloader_subsystem(settings: Settings) -> tuple[Registry, Reloader, Ex
     reloader = configure.build_reloader(
         registry,
         users_loader=load_active_users,
-        names=registry.get_names_of_configurator(),
+        names=registry.names_of_configurators,
         debounce=settings.reloader.debounce,
         max_delay=settings.reloader.max_delay,
     )

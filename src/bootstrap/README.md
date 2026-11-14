@@ -6,7 +6,7 @@ Composition root. Единственное место, где собираютс
 ## Назначение
 
 - **`Registry`** — реализация `application.ports.registry.RegistryLike`.
-  Знает про **все** конкретные адаптеры (`HysteriaInstaller`, `AppInstaller`,
+  Знает про **все** конкретные адаптеры (`MitaInstaller`, `AppInstaller`,
   `SystemdUnitController`, …) и умеет их собирать из `Settings`.
 
 ## Пример

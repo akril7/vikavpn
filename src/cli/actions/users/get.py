@@ -4,19 +4,20 @@ from src.domain.models import User
 from src.infrastructure.persistence.connection import Session
 from src.infrastructure.persistence.repo import UserRepository
 from src.cli.async_runtime import runtime
+from src.infrastructure.persistence.repo.options import full_options
 
 from .utils import find_user
 
 
-def list_users() -> list[User]:
+def list_users(load_options: bool = False) -> list[User]:
     """ Возвращает список всех пользователей """
-    return runtime.run(_list_users())
+    return runtime.run(_list_users(load_options=load_options))
 
 
-async def _list_users() -> list[User]:
+async def _list_users(load_options: bool = False) -> list[User]:
     async with Session() as session:
         repo = UserRepository(session)
-        return await repo.all()
+        return await repo.all(options=full_options() if load_options else None)
 
 
 def get_user(name_or_uuid: str) -> User | None:

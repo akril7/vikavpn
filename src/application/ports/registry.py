@@ -4,13 +4,16 @@ from src.application.ports.services import Configurator, Controller, Installer
 
 
 class RegistryLike(Protocol):
-    def get_names_of_installers(self) -> list[str]:
+    @property
+    def names_of_installers(self) -> list[str]:
         ...
 
-    def get_names_of_controllers(self) -> list[str]:
+    @property
+    def names_of_controllers(self) -> list[str]:
         ...
 
-    def get_names_of_configurator(self) -> list[str]:
+    @property
+    def names_of_configurators(self) -> list[str]:
         ...
 
     def get_installer(self, name: str) -> Installer:

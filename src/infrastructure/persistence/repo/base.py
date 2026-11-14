@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar, Type, Any
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Load
 
 ModelT = TypeVar("ModelT", bound=DeclarativeBase)
 
@@ -15,8 +15,11 @@ class BaseRepository(Generic[ModelT]):
     async def get(self, pk: Any) -> ModelT | None:
         return await self.session.get(self.model, pk)
 
-    async def all(self) -> list[ModelT]:
+    async def all(self, options: tuple[Load, ...] | None = None) -> list[ModelT]:
         stmt = select(self.model).order_by(self.model.id)
+        if options:
+            stmt = stmt.options(*options)
+
         return list((await self.session.scalars(stmt)).all())
 
     async def count(self, **filters: Any) -> int:
