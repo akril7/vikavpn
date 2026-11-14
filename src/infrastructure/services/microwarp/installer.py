@@ -23,7 +23,7 @@ class MicrowarpInstaller(BaseInstaller):
             "--cap-add", "NET_ADMIN",
             "--cap-add", "SYS_MODULE",
             "--sysctl", "net.ipv4.conf.all.src_valid_mark=1",
-            "-e", "ALLOW_NO_AUTH = 1",
+            "-e", "ALLOW_NO_AUTH=1",
             "-v", "warp-data:/etc/wireguard",
             self.__image
         ])
@@ -31,4 +31,3 @@ class MicrowarpInstaller(BaseInstaller):
     def _uninstall(self):
         run_with_check(["docker", "stop", self.__container_name])
         run_with_check(["docker", "rm", self.__container_name])
-        run_with_check(["docker", "image rm", self.__image])
