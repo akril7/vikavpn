@@ -100,5 +100,5 @@ def filter_installed_names(registry: RegistryLike, target: list[str]) -> list[st
     installed = installed_status(registry)
     return [
         name for name in target
-        if installed.get(name, False)
+        if name not in installed or installed.get(name, False)
     ]

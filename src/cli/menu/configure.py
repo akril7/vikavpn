@@ -33,7 +33,6 @@ def run(ctx: CliContext) -> None:
             _do_active_cfg(ctx)
 
 
-
 def _do_apply(ctx: CliContext, names: list[str]):
     console.print()
     actions.apply(ctx.registry, names)
