@@ -81,7 +81,7 @@ def build_trusttunnel(settings: Settings) -> Service:
     controller = None
     configurator = None
 
-    if check_required_settings(lambda: (settings.trusttunnel,)):
+    if check_required_settings(lambda: (settings.trusttunnel, settings.tls, settings.proxy)):
         installer = trusttunnel.TrustTunnelInstaller(settings.trusttunnel)
         is_install_callback = build_is_install_callback(installer)
         controller = SystemdUnitController(
@@ -201,6 +201,7 @@ def build_services(settings: Settings) -> dict[str, Service]:
         "mita": build_mita(settings),
         "mtproxyl": build_mtproxyl(settings),
         "trusttunnel": build_trusttunnel(settings),
+        "microwarp": build_microwarp(settings),
         "site": build_site(settings),
         "mihomo": build_mihomo(settings),
         "reloader": build_reloader(settings),

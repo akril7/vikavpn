@@ -5,7 +5,7 @@ set -euo pipefail
 REPO_URL="${REPO_URL:-https://github.com/akril7/vikavpn.git}"
 TARGET="${TARGET:-/opt/vikavpn}"
 BRANCH="${BRANCH:-master}"
-CONF_DIR="${CONF_DIR:-/etc/vikavpn}"
+CONF_DIR="${CONF_DIR:-/opt/vikavpn}"
 VENV_DIR="${VENV_DIR:-$TARGET/.venv}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 
@@ -55,10 +55,6 @@ else
     else
         log "venv уже существует: $VENV_DIR"
     fi
-
-    # обновляем pip и ставим зависимости
-    log "Обновление pip"
-    "$VENV_DIR/bin/python" -m pip install --upgrade pip -q
 
     log "Установка зависимостей из requirements.txt"
     "$VENV_DIR/bin/pip" install -r "$TARGET/requirements.txt" -q
