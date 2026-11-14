@@ -5,6 +5,7 @@ from src.configuration.apps.tgbot import TelegramBotSettings
 from src.configuration.apps.reloader import ReloaderSettings
 from src.configuration.apps.payments import PaymentsSettings
 from src.configuration.apps.yoomoney import YoomoneySettings
+from src.configuration.other.microwarp import MicrowarpSettings
 from src.configuration.other.proxy import ProxySettings
 from src.configuration.other.site import SiteSettings
 from src.configuration.other.site.nginx import NginxSettings
@@ -66,3 +67,6 @@ class Settings:
 
     @property
     def mihomo(self) -> MihomoSettings: return self.__get("mihomo", MihomoSettings)
+
+    @property
+    def microwarp(self) -> MicrowarpSettings: return self.__get("microwarp", MicrowarpSettings)

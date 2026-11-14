@@ -5,6 +5,7 @@ from .apps.tgbot import TelegramBotSettings
 from .apps.reloader import ReloaderSettings
 from .apps.payments import PaymentsSettings
 from .apps.yoomoney import YoomoneySettings
+from .other.microwarp import MicrowarpSettings
 from .other.proxy import ProxySettings
 from .other.site.site import SiteSettings
 from .other.site.nginx import NginxSettings
@@ -24,6 +25,7 @@ __all__ = [
     "MitaSettings",
     "TrustTunnelSettings",
     "MTProxyLSettings",
+    "MicrowarpSettings",
     "YoomoneySettings",
     "MihomoSettings",
     "TelegramBotSettings",

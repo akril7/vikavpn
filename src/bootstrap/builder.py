@@ -15,6 +15,7 @@ import src.infrastructure.services.endpoints.mtproxyl as mtproxyl
 import src.infrastructure.services.endpoints.trusttunnel as trusttunnel
 import src.infrastructure.services.mihomo as mihomo
 import src.infrastructure.services.site as site
+from src.infrastructure.services import microwarp
 from src.infrastructure.services.site.render import Mount
 from src.infrastructure.systemd import SystemdUnitController
 
@@ -157,6 +158,15 @@ def build_clash(
         )
 
     return Service(configurator=configurator, logname="clash")
+
+
+def build_microwarp(settings: Settings):
+    installer = None
+
+    if check_required_settings(lambda: (settings.microwarp, )):
+        installer = microwarp.MicrowarpInstaller(settings.microwarp)
+
+    return Service(installer=installer, logname="microwarp")
 
 
 def build_app(app_name: str, get_settings) -> Service:

@@ -9,22 +9,13 @@
       base.py           # make_config(env_prefix) -> SettingsConfigDict
       aggregator.py     # Settings — ленивый агрегатор всех настроек
       other/
-        clash.py        # ClashSettings
-        mihomo.py       # MihomoSettings
-        tls.py          # TLSSettings
+        clash, microwarp. mihomo, tls         
         site/
-          site.py       # SiteSettings
-          nginx.py      # NginxSettings
+          site, nginx.    
       endpoints/
-        mita.py         # MitaSettings, MitaProtocol
-        hysteria.py     # HysteriaSettings
-        trusttunnel.py  # TrustTunnelSettings
-        mtproxyl.py     # MTProxyLSettings
+        mita, trusttunnel, mtproxyl 
       services/
-        telegram.py     # TelegramBotSettings
-        reloader.py     # ReloaderSettings
-        payments.py     # PaymentsSettings
-        yoomoney.py     # YoomoneySettings
+        telegram, reloader, payments, yoomoney  
 
 ## Назначение
 

@@ -16,19 +16,14 @@ nginx, шаблоны и конкретные сервисы (endpoint'ы, site)
           payment_user.py       # PaymentUserRepository
           options.py            # selectinload-опции
       system/
+        docker.py               # операции над docker
         subprocess.py           # run_*, check_root, install_deb, ...
         systemctl.py            # SystemdUnit, daemon_reload
       systemd.py                # SystemdUnitInstaller/Configurator/Controller
       app.py                    # AppInstaller/AppController (systemd-unit для apps)
       templating.py             # get_env (Jinja2)
-      services/
-        clash/                  # ClashConfigurator + render
-        endpoints/              # Installer/Configurator/Controller + render
-          mita/                 #
-          trusttunnel/          # 
-          mtproxyl/             # 
-        site/                   # SiteInstaller + render
-        mihomo/                 # MihomoInstaller + render
+      services/                 # Реализации Installer, Configurator и Controller для сервисов
+        ...
 
 ## Назначение
 
