@@ -7,7 +7,7 @@ from src.infrastructure.system.subprocess import run_and_check_status
 def container_exists(name: str):
     try:
         result = run_and_check_status(["docker", "inspect", "--format", '"{{json .State}}"', name])
-        return result == 0
+        return result
     except FileNotFoundError:
         return False
 
