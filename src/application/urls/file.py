@@ -17,7 +17,8 @@ def build_clash_config_url(settings: Settings, user: User) -> str:
 def build_clash_video_guide_url(settings: Settings) -> str:
     try:
         return _build_clash_video_guide_url(
-            origin=build_origin(settings.tls.domain, settings.site.ssl_port)
+            origin=build_origin(settings.tls.domain, settings.site.ssl_port),
+            guide_urlpath=str(settings.site.guide_urlpath)
         )
     except ValidationError:
         return ""
