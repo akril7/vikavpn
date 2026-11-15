@@ -20,6 +20,7 @@ proxies:
     health-check: true
 
 rules:
+  - GEOIP,private,DIRECT
 {%- if direct_rule_domain is defined and direct_rule_domain %}
   - DOMAIN-SUFFIX,{{ direct_rule_domain }},DIRECT
 {%- endif %}

@@ -9,7 +9,7 @@ from src.application.ports.repo import PaymentRepoLike
 from src.infrastructure.persistence.repo.base import BaseRepository
 
 
-class PaymentRepository(PaymentRepoLike, BaseRepository[Payment]):
+class PaymentRepository(BaseRepository[Payment], PaymentRepoLike):
     model = Payment
 
     # ─────────── Создание ───────────

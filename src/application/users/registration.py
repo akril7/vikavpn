@@ -62,6 +62,7 @@ async def register_user(
         proxy_user=True,
         ios_user=ios_user,
     )
+    logger.debug(f"{uid=} {name=} {password=} {user=} {user_repo.__class__}")
 
     if messenger:
         await messenger_repo.bind(

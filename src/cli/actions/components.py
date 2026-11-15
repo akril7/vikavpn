@@ -10,12 +10,6 @@ from src.cli.console import console, err, ok, warn
 from src.cli.utils.root import require_root
 
 
-def installed_status(registry: RegistryLike) -> dict[str, bool]:
-    """Возвращает {имя: is_installed} для всех install-таргетов."""
-    installed: list[str] = installation.get_installed(registry)
-    return {name: name in installed for name in registry.names_of_installers}
-
-
 def install(registry: RegistryLike, names: list[str]) -> bool:
     if not require_root("установка компонентов"):
         return False
@@ -94,11 +88,3 @@ def setup(registry: RegistryLike, names: list[str]) -> bool:
         logger.exception("setup failed")
         err(f"setup: {exc}")
         return False
-
-
-def filter_installed_names(registry: RegistryLike, target: list[str]) -> list[str]:
-    installed = installed_status(registry)
-    return [
-        name for name in target
-        if name not in installed or installed.get(name, False)
-    ]

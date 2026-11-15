@@ -26,12 +26,19 @@ def uninstall(registry: RegistryLike, names: list[str]):
             logger.warning(f"{name} не установлен")
 
 
-def get_installed(registry: RegistryLike, names: list[str] | None = None) -> list[str]:
-    """ Получить имена установленных целей """
+def get_installed(registry: RegistryLike, names: list[str] | None = None) -> dict[str, bool]:
+    """ Установлена ли каждая из целей """
     if names is None:
         names = registry.names_of_installers
 
+    return {
+        name: registry.get_installer(name).is_installed for name in names
+    }
+
+
+def filter_installed_names(registry: RegistryLike, target: list[str]) -> list[str]:
+    installed = get_installed(registry)
     return [
-        name for name in names
-        if registry.get_installer(name).is_installed
+        name for name in target
+        if name not in installed or installed.get(name, False)
     ]

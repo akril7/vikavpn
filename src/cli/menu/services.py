@@ -1,5 +1,5 @@
 from src.cli.actions import services as actions
-from src.cli.actions.components import filter_installed_names
+from src.application.services.orchestration.installation import filter_installed_names
 from src.cli.console import console, info
 from src.cli.state import CliContext
 from src.cli.widgets import prompts

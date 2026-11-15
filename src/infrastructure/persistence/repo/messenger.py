@@ -6,7 +6,7 @@ from src.application.ports.repo import MessengerAlreadyBoundError, UserMessenger
 from src.infrastructure.persistence.repo.base import BaseRepository
 
 
-class UserMessengerRepository(UserMessengerRepoLike, BaseRepository[UserMessenger]):
+class UserMessengerRepository(BaseRepository[UserMessenger], UserMessengerRepoLike):
     model = UserMessenger
 
     # ─────────── Поиск ───────────

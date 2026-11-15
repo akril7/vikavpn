@@ -1,3 +1,4 @@
+from src.application.services.orchestration.installation import get_installed
 from src.cli.actions import components as actions
 from src.cli.console import console, info
 from src.cli.state import CliContext
@@ -54,7 +55,7 @@ def _pick_targets(ctx: CliContext, verb: str) -> list[str]:
 def _do_status(ctx: CliContext) -> None:
     console.print()
     with console.status("[cyan]Проверяю установку…[/]"):
-        installed = actions.installed_status(ctx.registry)
+        installed = get_installed(ctx.registry)
     console.print()
     print_installed(installed)
     console.print()

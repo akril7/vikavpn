@@ -11,7 +11,7 @@ from src.domain.models import User, UserMessenger
 from src.infrastructure.persistence.repo.base import BaseRepository
 
 
-class UserRepository(UserRepoLike, BaseRepository[User]):
+class UserRepository(BaseRepository[User], UserRepoLike):
     model = User
 
     # ─────────── Поиск по уникальным полям ───────────

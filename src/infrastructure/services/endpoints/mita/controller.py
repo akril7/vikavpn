@@ -10,7 +10,7 @@ class MitaController(BaseController):
 
     def start(self):
         output = run_and_get_text(["mita", "start"])
-        if "proxy is started" not in output:
+        if "proxy is started" not in output and "proxy is running" not in output:
             raise ControllerError(output)
 
     def stop(self):

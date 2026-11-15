@@ -5,7 +5,7 @@ from src.domain.models import PaymentUser, User, Users
 from src.infrastructure.persistence.repo.base import BaseRepository
 
 
-class PaymentUserRepository(PaymentUserRepoLike, BaseRepository[PaymentUser]):
+class PaymentUserRepository(BaseRepository[PaymentUser], PaymentUserRepoLike):
     model = PaymentUser
 
     async def link(self, payment_id: int, user_id: int) -> PaymentUser:

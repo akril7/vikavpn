@@ -1,12 +1,17 @@
 from aiohttp.web import Application, run_app
+from loguru import logger
 
 from src.bootstrap.composition.builders import build_reloader_subsystem
 from src.configuration import Settings
+from src.infrastructure.network.socks import install_socks_proxy
 
 from .api import handle_reload, handle_flush
 
 
 def create_app(settings: Settings) -> Application:
+    if settings.proxy.enabled:
+        install_socks_proxy(settings.proxy.host, settings.proxy.port)
+
     registry, reloader, expiry = build_reloader_subsystem(settings)
 
     app = Application()
@@ -31,11 +36,15 @@ def create_app(settings: Settings) -> Application:
 
 
 def main(settings: Settings):
+    app = create_app(settings)
+    logger.info("app created")
+    logger.info(f"run on {settings.reloader.host}:{settings.reloader.port}")
     run_app(
-        create_app(settings),
+        app,
         host=settings.reloader.host,
         port=settings.reloader.port,
     )
+    logger.info("app stopped")
 
 
 if __name__ == "__main__":
