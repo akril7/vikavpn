@@ -3,6 +3,7 @@ from datetime import timezone, timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
+from uuid import UUID
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -23,4 +24,4 @@ TZ = timezone(timedelta(hours=TIMEZONE_HOURS_DELTA))
 
 DB_URL = get("DB_URL")
 
-DEFAULT_USER = get("DEFAULT_USER", "default")
+DEFAULT_USER = UUID(get("DEFAULT_USER", "0290e2fd8c244e19b7e7ab961ce6ea00")).hex
