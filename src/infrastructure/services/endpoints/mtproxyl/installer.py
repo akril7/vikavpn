@@ -63,15 +63,11 @@ class MTProxyLInstaller(BaseInstaller):
             "--web-port", "443",
         ])
 
+        Path("/opt/mtproxyl/nginx-custom.conf").write_text(self.__nginx_conf)
+
         run_pty_proc(
             command=["mtproxyl", "web", "nginx-config", "on"],
             write_text="y\n"
-        )
-
-        Path("/tmp/mtproxy.nginx.conf").write_text(self.__nginx_conf)
-
-        run_pty_proc(
-            command=["mtproxyl", "web", "nginx-config", "write", "<", "/tmp/mtproxy.nginx.conf"]
         )
 
         if self.__socks5_upstream_address:

@@ -63,8 +63,8 @@ def build_mtproxyl(settings: Settings) -> Service:
             settings.mtproxyl, settings.tls, settings.proxy, settings.site
         )
         is_install_callback = build_is_install_callback(installer)
-        controller = SystemdUnitController(
-            settings.mtproxyl.service_name,
+        controller = mtproxyl.MTProxyLController(
+            settings.mtproxyl,
             is_install_callback=is_install_callback,
         )
         configurator = mtproxyl.MTProxyLConfigurator(

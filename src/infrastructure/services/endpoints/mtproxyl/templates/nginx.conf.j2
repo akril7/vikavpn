@@ -62,6 +62,9 @@ http {
         server_name {{ domain }};
         server_tokens off;
 
+        proxy_buffering off;
+        proxy_request_buffering off;
+
         ssl_certificate {{ cert_path }};
         ssl_certificate_key {{ key_path }};
 

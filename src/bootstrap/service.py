@@ -56,7 +56,7 @@ class Service(Installer, Controller, Configurator):
         getattr(self.controller, "start", self.__dummy)()
 
     def stop(self):
-        getattr(self.controller, "stot", self.__dummy)()
+        getattr(self.controller, "stop", self.__dummy)()
 
     def restart(self):
         getattr(self.controller, "restart", self.__dummy)()
