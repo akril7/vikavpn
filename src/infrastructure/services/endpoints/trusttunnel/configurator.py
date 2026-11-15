@@ -1,6 +1,7 @@
 from src.application.ports.services.callables import IsInstallCallback, ReloadControllerCallback
 from src.application.services import BaseConfigurator
 from src.configuration import TLSSettings, TrustTunnelSettings, ProxySettings
+from src.configuration.app import DEFAULT_USER
 from src.domain.models import Users
 from src.domain.users.filters import filter_vpn_users
 
@@ -17,7 +18,7 @@ class TrustTunnelConfigurator(BaseConfigurator):
         super().__init__(is_install_callback, reload_controller_callback)
 
         self.__install_dir = trusttunnel.install_dir
-        self.__default_user = trusttunnel.default_user
+        self.__default_user = DEFAULT_USER
 
         self.__hosts_content = render_hosts(tls=tls, allowed_sni=[trusttunnel.sni])
         self.__vpn_content = render_settings(port=trusttunnel.port, socks5_address=proxy.address)

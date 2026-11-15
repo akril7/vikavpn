@@ -23,4 +23,4 @@ TZ = timezone(timedelta(hours=TIMEZONE_HOURS_DELTA))
 
 DB_URL = get("DB_URL")
 
-LINK_DOMAIN = get("LINK_DOMAIN")
+DEFAULT_USER = get("DEFAULT_USER", "default")

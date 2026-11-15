@@ -19,9 +19,6 @@ class TrustTunnelSettings(BaseSettings):
     # Имя сервиса
     service_name: str = "vikavpn-trusttunnel"
 
-    # Пользователь по умолчанию (логин и пароль одинаковые)
-    default_user: str = "vikavpn_service_1523"
-
     # Папка установки бинарника
     install_dir: Path = Field(
         default_factory=lambda: DEFAULT_INSTALL_DIR / "trusttunnel"

@@ -1,4 +1,5 @@
 from src.application.services import BaseController
+from src.configuration.app import DEFAULT_USER
 from src.infrastructure.system.subprocess import run_with_check, run_and_get_text, check_root
 
 
@@ -22,4 +23,4 @@ class MTProxyLController(BaseController):
 
     def _reload(self):
         check_root()
-        run_with_check(["mtproxyl", "secret", "enable", "default"])
+        run_with_check(["mtproxyl", "secret", "enable", DEFAULT_USER])

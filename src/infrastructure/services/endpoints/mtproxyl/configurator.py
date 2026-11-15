@@ -1,6 +1,7 @@
 from src.application.ports.services.callables import IsInstallCallback, ReloadControllerCallback
 from src.application.services import BaseConfigurator
 from src.configuration import MTProxyLSettings
+from src.configuration.app import DEFAULT_USER
 from src.domain.models import Users
 from src.infrastructure.system.subprocess import check_root
 from src.domain.users.filters import filter_proxy_users
@@ -15,11 +16,13 @@ class MTProxyLConfigurator(BaseConfigurator):
                  reload_controller_callback: ReloadControllerCallback):
         super().__init__(is_install_callback, reload_controller_callback)
         self.__secrets_path = mtproxyl.secrets_path
+        self.__default_user = DEFAULT_USER
 
     def _apply(self, users: Users):
         check_root()
 
         secrets = render_secrets(
+            default_user=DEFAULT_USER,
             users=filter_proxy_users(users)
         )
 
