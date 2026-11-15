@@ -61,7 +61,7 @@ class MTProxyLInstaller(BaseInstaller):
             "--web-carriers", "websocket-lanes,https-lanes,websocket",
             "--web-secret-mode", "dd",
             "--web-port", "443",
-        ], timeout=60.0)
+        ])
 
         run_pty_proc(
             command=["mtproxyl", "web", "nginx-config", "on"],

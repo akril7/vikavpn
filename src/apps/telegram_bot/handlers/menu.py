@@ -6,7 +6,7 @@ from src.application.urls import build_clash_video_guide_url
 from src.configuration import Settings
 
 from ..deps import get_user
-from ..keyboards import auth_menu, main_menu, back_menu
+from ..keyboards import auth_menu, main_menu, help_menu
 from ..texts.render import render_start_not_authorized, render_help
 
 router = Router()
@@ -34,6 +34,6 @@ async def cb_help(call: CallbackQuery, state: FSMContext, settings: Settings):
     video_url = build_clash_video_guide_url(settings)
     await call.message.edit_text(
         render_help(video_url, settings.telegram_bot.admin_username),
-        reply_markup=back_menu("menu:main"),
+        reply_markup=help_menu(),
     )
     await call.answer()

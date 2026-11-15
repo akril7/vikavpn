@@ -1,5 +1,5 @@
 START_NOT_AUTHORIZED = (
-    "👋 Добро пожаловать!\n\n"
+    "👋 Добро пожаловать!\nPlatega test\n"
     "Похоже, вы здесь впервые. Авторизуйтесь по ссылке, "
     "которую вам выдал администратор, или зарегистрируйтесь."
 )
@@ -85,6 +85,11 @@ RENEW_PROXY_BLOCKED_BY_VPN = (
 IOS_URL = "https://apps.apple.com/us/app/clash-mi/id6744321968?l=ru"
 ANDROID_URL = "https://github.com/KaringX/clashmi/releases/download/v1.0.30.1605/clashmi_1.0.30.1605_android_arm.apk"
 WINDOWS_URL = "https://github.com/KaringX/clashmi/releases/download/v1.0.30.1605/clashmi_1.0.30.1605_windows_x64.exe"
+
+POLICY_DOC = "Политика конфиденциальности"
+POLICY_DOC_URL = "https://telegra.ph/Politika-konfidencialnosti-11-15-53"
+USER_AGREEMENT = "Пользовательское соглашение"
+USER_AGREEMENT_URL = "https://telegra.ph/Polzovatelskoe-soglashenie-11-15-25"
 
 HELP_TEXT = """
 ❓ Как настроить VPN?

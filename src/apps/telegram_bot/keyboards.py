@@ -65,7 +65,7 @@ def tariff_menu(proxy_price: int, full_price: int) -> InlineKeyboardMarkup:
             text=texts.BTN_TARIFF_FULL.format(price=full_price),
             callback_data="tariff:full",
         )],
-        [InlineKeyboardButton(text=texts.BTN_BACK, callback_data="menu:renew")],
+        [InlineKeyboardButton(text=texts.BTN_BACK, callback_data="menu:main")],
     ])
 
 
@@ -97,5 +97,13 @@ def payment_menu(pay_url: str, label: str) -> InlineKeyboardMarkup:
             text=texts.BTN_CHECK_PAYMENT,
             callback_data=f"check:{label}",
         )],
+        [InlineKeyboardButton(text=texts.BTN_BACK, callback_data="menu:main")],
+    ])
+
+
+def help_menu():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=texts.POLICY_DOC, url=texts.POLICY_DOC_URL)],
+        [InlineKeyboardButton(text=texts.USER_AGREEMENT, url=texts.USER_AGREEMENT_URL)],
         [InlineKeyboardButton(text=texts.BTN_BACK, callback_data="menu:main")],
     ])
