@@ -8,18 +8,9 @@ env = get_env(__file__)
 
 @dataclass
 class Mount:
-    loc: str
+    location: str
     dest: str
     is_proxy: bool = False
-
-    @property
-    def location(self) -> str:
-        text = self.loc
-        if not text.startswith("/"):
-            text = "/" + text
-        if not text.endswith("/"):
-            text = text + "/"
-        return text
 
     @property
     def destination(self) -> str:

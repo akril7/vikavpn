@@ -13,7 +13,7 @@ server {
 
 {% if mounts %}
 {%- for mount in mounts %}
-    location {{ mount.location }} {
+    location = {{ mount.location }} {
 {%- if mount.is_proxy %}
         proxy_pass {{ mount.destination }};
         proxy_set_header Host              $host;
